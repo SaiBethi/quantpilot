@@ -1,0 +1,18 @@
+/* styles.css */
+html, body, [class*="css"] {
+    font-family: 'Garamond', 'EB Garamond', serif;
+}
+
+h1, h2, h3 {
+    font-family: 'Garamond', 'EB Garamond', serif;
+    font-weight: bold;
+}
+
+.sidebar .sidebar-content {
+    background-color: #f8f9fa;
+}
+
+.block-container {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
