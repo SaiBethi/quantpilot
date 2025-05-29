@@ -233,6 +233,10 @@ st.markdown("""
     </div>
 </div>
 """.format(hero_description), unsafe_allow_html=True)
+# When button is clicked, redirect to dashboard page
+if st.button("🚀 Launch Dashboard", key="launch-btn", help="Open QuantPilot Dashboard"):
+    st.switch_page("01_Dashboard.py")
+
 
 st.markdown("""
 <a id="about"></a>
@@ -304,7 +308,3 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 import streamlit as st
-
-# When button is clicked, redirect to dashboard page
-if st.button("🚀 Launch Dashboard", key="launch-btn", help="Open QuantPilot Dashboard"):
-    st.switch_page("01_Dashboard.py")
