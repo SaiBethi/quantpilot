@@ -1,89 +1,146 @@
 import streamlit as st
-import pandas as pd
-import plotly.graph_objs as go
-from utils import calculate_indicators, fetch_stock_data
 
-st.set_page_config(page_title="Dashboard", layout="wide", page_icon="📊")
+# Page config
+st.set_page_config(page_title="QuantPilot - Home", layout="wide", page_icon="📈")
 
-# Load CSS for El Garamond + custom styles
-def local_css(file_name):
-    with open(file_name) as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-local_css("assets/styles.css")
+# Load custom font + CSS
+def local_css():
+    css = """
+    @import url('https://fonts.googleapis.com/css2?family=EB+Garamond&display=swap');
 
-st.title("📊 QuantPilot Dashboard")
+    html, body, [class*="css"]  {
+        font-family: 'EB Garamond', serif;
+        scroll-behavior: smooth;
+        background-color: #f7f9fc;
+        color: #222222;
+    }
 
-# Sidebar inputs for ticker and dates
-st.sidebar.header("Stock Data Input")
-ticker = st.sidebar.text_input("Enter Stock Ticker", value="SMCI").upper().strip()
+    /* Hero section background */
+    .hero {
+        background-image: url('https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=1350&q=80');
+        background-size: cover;
+        background-position: center;
+        height: 80vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+        margin-bottom: 3rem;
+    }
 
-start_date = st.sidebar.date_input("Start Date", value=pd.to_datetime("2022-01-01"))
-end_date = st.sidebar.date_input("End Date", value=pd.to_datetime("2025-06-19"))
+    .hero h1 {
+        font-size: 4rem;
+        font-weight: 700;
+        margin: 0;
+        padding: 0;
+    }
 
-fetch_button = st.sidebar.button("Fetch Data & Plot", help="Fetch stock data from Yahoo Finance and plot")
+    .hero p {
+        font-size: 1.5rem;
+        margin-top: 1rem;
+        max-width: 700px;
+        text-align: center;
+    }
 
-st.sidebar.markdown("---")
-st.sidebar.markdown(
+    .btn-primary {
+        margin-top: 2rem;
+        background-color: #0072C6;
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        font-size: 1.25rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background-color: #005a9e;
+    }
+
+    /* Section styling */
+    .section {
+        max-width: 900px;
+        margin: auto;
+        padding: 2rem 1rem;
+        color: #333;
+    }
+
+    .section h2 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    .section p {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        text-align: center;
+    }
+
+    /* Footer */
+    footer {
+        margin-top: 4rem;
+        padding: 1rem;
+        text-align: center;
+        color: #777;
+        font-size: 0.9rem;
+    }
     """
-    **Instructions:**  
-    - Enter a valid stock ticker symbol (e.g., AAPL, MSFT).  
-    - Select start and end dates for data range.  
-    - Click **Fetch Data & Plot** to view charts and download data.
+    st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
+
+
+local_css()
+
+# Hero section
+st.markdown(
     """
+    <div class="hero">
+        <h1>📈 QuantPilot</h1>
+        <p>Your AI-powered stock dashboard and finance insights hub.</p>
+        <button class="btn-primary" onclick="window.location.href='/pages/01_Dashboard'">Go to Dashboard →</button>
+    </div>
+    """,
+    unsafe_allow_html=True,
 )
 
-# Main area for output
-if fetch_button:
-    if start_date > end_date:
-        st.sidebar.error("❌ Start date must be before end date.")
-    elif not ticker:
-        st.sidebar.warning("⚠️ Please enter a ticker symbol.")
-    else:
-        with st.spinner("Fetching and processing data... ⏳"):
-            data = fetch_stock_data(ticker, start_date, end_date)
+# About section
+st.markdown(
+    """
+    <div class="section">
+        <h2>Why QuantPilot?</h2>
+        <p>
+            QuantPilot empowers you with elegant data visualizations and AI insights for smarter stock market decisions.  
+            Built with Streamlit, Plotly, and powered by cutting-edge AI models, QuantPilot makes finance accessible to everyone.
+        </p>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
-        if data.empty:
-            st.warning(f"⚠️ No data found for ticker '{ticker}'. Check ticker symbol and try again.")
-        else:
-            data = calculate_indicators(data)
+# Features section
+st.markdown(
+    """
+    <div class="section">
+        <h2>Features</h2>
+        <p>• Real-time stock charts with technical indicators like Moving Averages, RSI, and more.<br>
+           • AI-driven predictions and sentiment analysis.<br>
+           • Easy CSV data export.<br>
+           • Clean, responsive, and beautiful interface designed with El Garamond font.<br>
+           • And much more coming soon!</p>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
-            st.success(f"✅ Data fetched successfully for {ticker}!")
-            
-            # Layout: two charts side-by-side
-            price_col, rsi_col = st.columns([3, 1.5])
-
-            with price_col:
-                price_fig = go.Figure()
-                price_fig.add_trace(go.Scatter(x=data.index, y=data["Close"], mode="lines", name="Close Price"))
-                price_fig.add_trace(go.Scatter(x=data.index, y=data["MA20"], mode="lines", name="MA 20"))
-                price_fig.add_trace(go.Scatter(x=data.index, y=data["MA50"], mode="lines", name="MA 50"))
-                price_fig.update_layout(
-                    title=f"Price Chart for {ticker}",
-                    yaxis_title="Price (USD)",
-                    template="plotly_white",
-                    legend=dict(x=0, y=1)
-                )
-                st.plotly_chart(price_fig, use_container_width=True)
-
-            with rsi_col:
-                rsi_fig = go.Figure()
-                rsi_fig.add_trace(go.Scatter(x=data.index, y=data["RSI"], mode="lines", name="RSI"))
-                rsi_fig.update_layout(
-                    title=f"RSI (Relative Strength Index)",
-                    yaxis_title="RSI",
-                    yaxis=dict(range=[0, 100]),
-                    template="plotly_white"
-                )
-                st.plotly_chart(rsi_fig, use_container_width=True)
-
-            # Download CSV button at bottom full width
-            csv = data.to_csv().encode()
-            st.download_button(
-                label="⬇️ Download stock data with indicators as CSV",
-                data=csv,
-                file_name=f"{ticker}_data.csv",
-                mime="text/csv",
-                help="Click to download the data used in the charts."
-            )
-else:
-    st.info("Use the sidebar to input stock ticker and date range, then click 'Fetch Data & Plot'.")
+# Footer
+st.markdown(
+    """
+    <footer>
+        © 2025 QuantPilot | Made with ❤️ by You
+    </footer>
+    """,
+    unsafe_allow_html=True,
+)
