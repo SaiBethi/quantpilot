@@ -302,3 +302,9 @@ st.markdown("""
         &copy; 2025 QuantPilot. All rights reserved.
     </div>
 """, unsafe_allow_html=True)
+
+import streamlit as st
+
+# When button is clicked, redirect to dashboard page
+if st.button("🚀 Launch Dashboard", key="launch-btn", help="Open QuantPilot Dashboard"):
+    st.switch_page("01_Dashboard.py")
