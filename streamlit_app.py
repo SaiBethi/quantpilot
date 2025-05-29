@@ -1,221 +1,121 @@
 import streamlit as st
-import time
+import streamlit.components.v1 as components
 
-# Page config
-st.set_page_config(page_title="QuantPilot - Home", layout="wide", page_icon="📈")
+# Set custom font and styling
+st.markdown("""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
 
-# Custom CSS for font, layout, animations
-def local_css():
-    css = """
-    @import url('https://fonts.googleapis.com/css2?family=EB+Garamond&display=swap');
-
-    html, body, [class*="css"] {
-        font-family: 'EB Garamond', serif !important;
+    html, body, [class*="css"]  {
+        font-family: 'EB Garamond', serif;
         scroll-behavior: smooth;
-        background-color: #f0f4f8;
-        color: #222222;
-        margin: 0;
-        padding: 0;
     }
-
-    /* Sticky Navbar */
-    nav {
-        position: sticky;
-        top: 0;
-        background: #ffffffdd;
-        backdrop-filter: saturate(180%) blur(10px);
-        border-bottom: 1px solid #ddd;
-        z-index: 9999;
-        display: flex;
-        justify-content: center;
-        gap: 2rem;
-        padding: 1rem 0;
-        font-weight: 600;
-        font-size: 1.1rem;
-    }
-    nav a {
-        color: #0072C6;
-        text-decoration: none;
-        transition: color 0.3s ease;
-    }
-    nav a:hover {
-        color: #004a7c;
-        cursor: pointer;
-    }
-
-    /* Hero section */
     .hero {
-        background-image: url('https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1350&q=80');
+        background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+        url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2015&q=80');
         background-size: cover;
-        background-position: center center;
-        height: 85vh;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
+        background-position: center;
+        background-attachment: fixed;
         color: white;
-        text-shadow: 2px 2px 10px rgba(0,0,0,0.8);
-        padding: 0 1rem;
+        padding: 100px 30px;
         text-align: center;
     }
-    .hero h1 {
-        font-size: 5rem;
-        margin-bottom: 0.2rem;
+    .section-title {
+        text-align: center;
+        font-size: 2.5rem;
+        margin: 2rem 0 1rem;
     }
-    .hero p {
-        font-size: 1.8rem;
-        max-width: 720px;
-        margin: 0 auto 2rem;
-    }
-    .btn-primary {
-        background-color: #0072C6;
-        border: none;
-        padding: 1rem 3rem;
-        font-size: 1.4rem;
-        border-radius: 10px;
-        color: white;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-        box-shadow: 0 5px 15px rgba(0,114,198,0.4);
-        user-select: none;
-    }
-    .btn-primary:hover {
-        background-color: #004a7c;
-    }
-
-    /* Sections */
-    section {
-        max-width: 900px;
-        margin: 5rem auto;
-        padding: 2rem 1rem;
-        background: white;
+    .feature-card {
+        background-color: white;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
         border-radius: 12px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-        opacity: 0;
-        transform: translateY(30px);
-        animation: fadeInUp 1s forwards;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     }
-
-    /* Animation delay for multiple sections */
-    section:nth-of-type(1) {
-        animation-delay: 0.2s;
+    .feature-title {
+        font-size: 1.25rem;
+        font-weight: 600;
     }
-    section:nth-of-type(2) {
-        animation-delay: 0.5s;
-    }
-    section:nth-of-type(3) {
-        animation-delay: 0.8s;
-    }
-
-    section h2 {
-        font-size: 2.8rem;
-        margin-bottom: 1rem;
-        color: #0072C6;
+    .footer {
         text-align: center;
+        margin-top: 4rem;
+        padding: 2rem 0;
+        font-size: 0.9rem;
+        color: #6B7280;
     }
-    section p {
-        font-size: 1.2rem;
-        line-height: 1.8;
-        color: #444;
-        text-align: center;
-    }
-
-    /* Footer */
-    footer {
-        text-align: center;
-        padding: 2rem 1rem;
-        font-size: 1rem;
-        color: #888;
-    }
-
-    /* Fade in up animation */
-    @keyframes fadeInUp {
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    """
-    st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
-
-local_css()
-
-# Sticky Navbar
-st.markdown(
-    """
-    <nav>
-        <a href="#hero">Home</a>
-        <a href="#about">About</a>
-        <a href="#features">Features</a>
-        <a href="#contact">Contact</a>
-    </nav>
-    """,
-    unsafe_allow_html=True,
-)
+    </style>
+""", unsafe_allow_html=True)
 
 # Hero Section
-st.markdown(
-    """
-    <section id="hero" class="hero">
-        <h1>📈 QuantPilot</h1>
-        <p>Your AI-powered stock dashboard and finance insights hub.</p>
-        <button class="btn-primary" onclick="window.location.href='/pages/01_Dashboard'">Explore Dashboard →</button>
-    </section>
-    """,
-    unsafe_allow_html=True,
-)
+st.markdown("""
+    <div class="hero">
+        <h1 style="font-size: 4rem; font-weight: bold;">📈 QuantPilot</h1>
+        <p style="font-size: 1.5rem; max-width: 700px; margin: 1rem auto;">
+            AI-powered financial analytics for data-driven investment decisions
+        </p>
+        <a href="/dashboard" target="_self">
+            <button style="padding: 0.75rem 2rem; font-weight: bold; background-color: white; color: #1f2937; border-radius: 8px; font-size: 1rem; margin-top: 1.5rem;">Launch Dashboard</button>
+        </a>
+    </div>
+""", unsafe_allow_html=True)
 
 # About Section
-st.markdown(
-    """
-    <section id="about">
-        <h2>Why QuantPilot?</h2>
-        <p>
-            QuantPilot empowers you with elegant data visualizations and AI insights for smarter stock market decisions.<br>
-            Built with Streamlit, Plotly, and powered by cutting-edge AI models, QuantPilot makes finance accessible to everyone.
-        </p>
-    </section>
-    """,
-    unsafe_allow_html=True,
-)
+st.markdown("<h2 class='section-title'>About QuantPilot</h2>", unsafe_allow_html=True)
+cols = st.columns(3)
+
+about_data = [
+    ("🔍", "Advanced Analytics", "QuantPilot leverages cutting-edge algorithms to analyze financial data with precision, uncovering hidden patterns and opportunities."),
+    ("🤖", "AI-Powered", "Our machine learning models continuously learn from market data to provide increasingly accurate predictions and insights."),
+    ("📊", "Visual Intelligence", "Complex financial data transformed into intuitive visualizations that tell the story behind the numbers.")
+]
+
+for i, col in enumerate(cols):
+    with col:
+        st.markdown(f"""
+            <div class="feature-card">
+                <div style="font-size: 2rem;">{about_data[i][0]}</div>
+                <div class="feature-title">{about_data[i][1]}</div>
+                <p style="color: #4B5563">{about_data[i][2]}</p>
+            </div>
+        """, unsafe_allow_html=True)
 
 # Features Section
-st.markdown(
-    """
-    <section id="features">
-        <h2>Features</h2>
-        <p>
-            • Real-time interactive stock charts with technical indicators like Moving Averages, RSI, Bollinger Bands, and more.<br>
-            • AI-driven predictions and sentiment analysis.<br>
-            • Easy CSV data export.<br>
-            • Clean, responsive, and beautiful interface designed with El Garamond font.<br>
-            • Future features coming soon!
-        </p>
-    </section>
-    """,
-    unsafe_allow_html=True,
-)
+st.markdown("<h2 class='section-title'>Key Features</h2>", unsafe_allow_html=True)
+features = [
+    ("📉", "Interactive Charts", "Explore your data with dynamic, zoomable charts that update in real-time as you adjust parameters."),
+    ("🧠", "AI Predictions", "Get forward-looking insights with our proprietary AI models trained on decades of market data."),
+    ("📈", "Technical Indicators", "Analyze market trends using popular indicators like RSI, MACD, and Bollinger Bands."),
+    ("📋", "Stock Summary", "View essential metrics like PE ratio, market cap, and dividend yield at a glance."),
+    ("📁", "Downloadable Reports", "Export your results and insights in CSV format for offline analysis or presentation.")
+]
+
+for i in range(0, len(features), 2):
+    cols = st.columns(2)
+    for j in range(2):
+        if i + j < len(features):
+            with cols[j]:
+                icon, title, desc = features[i + j]
+                st.markdown(f"""
+                    <div class="feature-card">
+                        <div style="font-size: 2rem;">{icon}</div>
+                        <div class="feature-title">{title}</div>
+                        <p style="color: #4B5563">{desc}</p>
+                    </div>
+                """, unsafe_allow_html=True)
 
 # Contact Section
-st.markdown(
-    """
-    <section id="contact">
-        <h2>Get in Touch</h2>
-        <p>
-            Have questions or want to contribute? Reach out to us at <a href="mailto:contact@quantpilot.com">contact@quantpilot.com</a>
-        </p>
-    </section>
-    """,
-    unsafe_allow_html=True,
-)
+st.markdown("<h2 class='section-title'>Contact</h2>", unsafe_allow_html=True)
+st.markdown("""
+    <div class="feature-card" style="text-align:center;">
+        <p>Have questions or feedback?</p>
+        <p>Email us at <a href="mailto:team@quantpilot.ai">team@quantpilot.ai</a></p>
+        <p>Follow us on <a href="https://twitter.com/quantpilot" target="_blank">Twitter</a> and <a href="https://linkedin.com/company/quantpilot" target="_blank">LinkedIn</a></p>
+    </div>
+""", unsafe_allow_html=True)
 
 # Footer
-st.markdown(
-    """
-    <footer>
-        © 2025 QuantPilot | Made with ❤️ by You
-    </footer>
-    """,
-    unsafe_allow_html=True,
-)
+st.markdown("""
+    <div class="footer">
+        &copy; 2025 QuantPilot. All rights reserved.
+    </div>
+""", unsafe_allow_html=True)
