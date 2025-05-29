@@ -164,7 +164,7 @@ st.markdown("""
         <div class="hero-title" style="margin-bottom:0.45em;">📈 QuantPilot</div>
         <div></div>
         <div class="hero-desc">
-            AI-powered financial analytics for data-driven investment decisions
+            Unlock smarter investment decisions with AI-driven financial analytics, delivering powerful insights for data-backed success.
         </div>
         <div>
             <a href="/dashboard" target="_self" style="text-decoration: none;">
