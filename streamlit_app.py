@@ -221,21 +221,18 @@ st.markdown("""
 
 # ---- MAIN CONTENT ----
 
-st.markdown("""
+st.markdown(f"""
 <a id="home"></a>
 <div class="hero">
     <div class="hero-title" style="margin-bottom:0.45em;">📈 QuantPilot</div>
-    <div class="hero-desc">{}</div>
+    <div class="hero-desc">{hero_description}</div>
     <div>
-        <a href="/dashboard" target="_self" style="text-decoration: none;">
+        <a href="/01_Dashboard" target="_self" style="text-decoration: none;">
             <button class="dash-btn">Launch Dashboard</button>
         </a>
     </div>
 </div>
-""".format(hero_description), unsafe_allow_html=True)
-# When button is clicked, redirect to dashboard page
-if st.button("🚀 Launch Dashboard", key="launch-btn", help="Open QuantPilot Dashboard"):
-    st.switch_page("01_Dashboard.py")
+""", unsafe_allow_html=True)
 
 
 st.markdown("""
