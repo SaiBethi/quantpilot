@@ -1,77 +1,317 @@
 import streamlit as st
 
+# Improved hero description
 hero_description = (
     "Level up your investing with QuantPilot: AI-powered analytics, real-time visualizations, and actionable insights. "
     "Transform complexity into clarity and make every decision count—no matter your experience level."
 )
 
-# --- FIXED, MINIMAL, VISIBLE LEFT SIDEBAR ---
+# --- SIDE NAVIGATION (ALWAYS VISIBLE, RESPONSIVE, Z-INDEX HIGH, VISIBLE ON ALL SCREENS) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
-
-    /* Sidebar styling */
-    .custom-left-nav {
+    .side-nav-container {
         position: fixed;
-        top: 0; left: 0;
-        width: 80px;
+        top: 0;
+        left: 0;
         height: 100vh;
-        background: rgba(255,255,255,0.97);
-        border-right: 2px solid #e3eaf5;
-        box-shadow: 4px 0 24px -8px rgba(31,41,55,0.13);
-        z-index: 9999;
+        width: 60px;
+        z-index: 99999 !important;
+        background: rgba(255,255,255,0.98);
+        box-shadow: 2px 0 20px -8px rgba(31,41,55,0.18);
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding-top: 32px;
+        justify-content: flex-start;
+        transition: width 0.23s cubic-bezier(.18,.89,.32,1.28);
+    }
+    .side-nav-container.expanded {
+        width: 200px;
+    }
+    .nav-toggle {
+        margin-top: 1.4em;
+        margin-bottom: 1.6em;
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 7px;
+        border-radius: 7px;
+        transition: background 0.17s;
+    }
+    .nav-toggle:hover {
+        background: #e7eaf6;
+    }
+    .dot-icon {
+        width: 26px;
+        height: 26px;
+        display: inline-block;
+        fill: #3b446a;
+        margin-left: 2px;
+    }
+    .side-nav-links {
+        margin-top: 2.6em;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.23s;
+        padding-left: 2px;
+    }
+    .side-nav-container.expanded .side-nav-links {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .side-nav-link {
         font-family: 'EB Garamond', serif !important;
-    }
-    .custom-left-nav a {
-        display: block;
-        color: #2a2d44;
-        text-decoration: none;
-        font-size: 1.2rem;
+        color: #1a1b1f;
+        font-size: 1.14rem;
         font-weight: 600;
-        margin: 18px 0;
-        padding: 10px 7px;
-        border-radius: 10px;
-        transition: background 0.15s, color 0.15s;
-        text-align: center;
-        width: 56px;
+        text-decoration: none;
+        margin: 0.56em 0 0.56em 0.5em;
+        padding: 0.22em 1em 0.22em 0.65em;
+        border-radius: 8px 30px 30px 8px;
+        transition: background 0.16s, color 0.18s, box-shadow 0.18s;
         letter-spacing: 0.01em;
+        border-left: 3.5px solid transparent;
+        width: 87%;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        opacity: 0.93;
+        box-shadow: none;
     }
-    .custom-left-nav a:hover, .custom-left-nav a.active {
-        background: #e4eafc;
+    .side-nav-link:hover, .side-nav-link.active {
+        background: linear-gradient(90deg, #e4eafc 75%, #f3f7ff 100%);
         color: #1946d2;
+        border-left: 3.5px solid #1946d2;
+        box-shadow: 0 2px 16px -8px #b9cfff55;
+        text-decoration: none;
+        opacity: 1.0;
     }
-    .custom-left-nav .nav-icon {
-        font-size: 1.4em;
-        display: block;
-        margin-bottom: 2px;
+    .side-nav-label {
+        margin-left: 0.7em;
+        font-size: 1.0em;
+        vertical-align: middle;
     }
-    /* Move all Streamlit content to the right! */
-    .stApp {
-        margin-left: 80px !important;
+    /* Always show links on large screens */
+    @media (min-width: 640px) {
+        .side-nav-container.expanded .side-nav-links { opacity: 1; pointer-events: auto; }
+        .side-nav-links { opacity: 1 !important; pointer-events: auto !important; }
     }
-    @media (max-width: 600px) {
-        .custom-left-nav { width: 56px; }
-        .stApp { margin-left: 56px !important; }
-        .custom-left-nav a { font-size: 1.1rem; width: 40px; padding: 7px 2px; }
+    /* Make room for nav: */
+    .stApp { margin-left: 60px !important; }
+    .side-nav-container.expanded ~ .stApp { margin-left: 200px !important; }
+    @media (max-width: 700px) {
+        .side-nav-container { width: 44px; }
+        .side-nav-link { font-size: 1.00rem; }
+        .stApp { margin-left: 44px !important; }
+        .side-nav-container.expanded { width: 92vw; }
+        .side-nav-container.expanded ~ .stApp { margin-left: 92vw !important; }
+        .side-nav-links { font-size: 1.12rem; }
     }
+    /* Ensure nav is always on top and visible */
+    body { overflow-x: visible !important; }
     </style>
-    <nav class="custom-left-nav">
-        <a href="#home" title="Home"><span class="nav-icon">🏠</span></a>
-        <a href="/dashboard" title="Dashboard" target="_self"><span class="nav-icon">📊</span></a>
-        <a href="#ai-insights" title="AI Insights"><span class="nav-icon">🤖</span></a>
-        <a href="#about" title="About"><span class="nav-icon">📚</span></a>
-        <a href="#contact" title="Contact"><span class="nav-icon">✉️</span></a>
-    </nav>
+    <script>
+    window.addEventListener('DOMContentLoaded', function() {
+        let nav = document.querySelector('.side-nav-container');
+        let toggle = document.querySelector('.nav-toggle');
+        if (toggle && nav) {
+            toggle.onclick = function() {
+                nav.classList.toggle('expanded');
+                let app = document.querySelector('.stApp');
+                if (nav.classList.contains('expanded')) {
+                    app.style.marginLeft = window.innerWidth < 700 ? '92vw' : '200px';
+                } else {
+                    app.style.marginLeft = window.innerWidth < 700 ? '44px' : '60px';
+                }
+            }
+        }
+    });
+    </script>
+    <div class="side-nav-container">
+        <button class="nav-toggle" aria-label="Open navigation">
+            <svg class="dot-icon" viewBox="0 0 32 32">
+                <circle cx="6" cy="16" r="3"/>
+                <circle cx="16" cy="16" r="3"/>
+                <circle cx="26" cy="16" r="3"/>
+            </svg>
+        </button>
+        <div class="side-nav-links">
+            <a class="side-nav-link" href="#home">
+                <span class="side-nav-label">Home</span>
+            </a>
+            <a class="side-nav-link" href="/dashboard" target="_self">
+                <span class="side-nav-label">Dashboard</span>
+            </a>
+            <a class="side-nav-link" href="#ai-insights">
+                <span class="side-nav-label">AI Insights</span>
+            </a>
+            <a class="side-nav-link" href="#about">
+                <span class="side-nav-label">About</span>
+            </a>
+            <a class="side-nav-link" href="#contact">
+                <span class="side-nav-label">Contact</span>
+            </a>
+        </div>
+    </div>
 """, unsafe_allow_html=True)
 
-# --- END SIDEBAR ---
+# --- END SIDE NAV ---
 
-# Main content below (unchanged!):
+# Global style for full-page background and EB Garamond font
+st.markdown("""
+    <style>
+    html, body, [class*="css"]  {
+        font-family: 'EB Garamond', serif !important;
+        scroll-behavior: smooth;
+        background: 
+            linear-gradient(110deg, rgba(25, 28, 36, 0.68) 60%, rgba(31,84,193, 0.18) 100%),
+            url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2015&q=80') no-repeat center center fixed;
+        background-size: cover !important;
+        background-attachment: fixed !important;
+        min-height: 100vh;
+    }
+    .main, .stApp {
+        background: transparent !important;
+    }
+    .hero {
+        color: #191c24;
+        padding: 6vw 5vw 4vw 5vw;
+        text-align: center;
+        background: rgba(0,0,0,0.00);
+        box-shadow: none;
+    }
+    .hero-title {
+        font-family: 'EB Garamond', serif !important;
+        font-size: min(10vw, 4rem);
+        font-weight: bold;
+        margin-bottom: 0.3em;
+        color: #191c24;
+        background: rgba(255,255,255,0.97);
+        display: inline-block;
+        padding: 0.38em 1.6em 0.18em 1.6em;
+        border-radius: 18px;
+        box-shadow: 0 8px 24px -10px rgba(31,41,55,0.13);
+        transition: box-shadow 0.22s, transform 0.22s;
+        letter-spacing: 0.03em;
+    }
+    .hero-title:hover {
+        box-shadow: 0 18px 44px -15px rgba(31,41,55,0.20);
+        transform: translateY(-4px) scale(1.03);
+    }
+    .hero-desc {
+        font-family: 'EB Garamond', serif !important;
+        font-size: min(4vw, 1.35rem);
+        max-width: 700px;
+        margin: 1.2rem auto 0.7em;
+        color: #222b33;
+        background: rgba(255,255,255,0.96);
+        display: inline-block;
+        padding: 0.65em 1.4em 0.65em 1.4em;
+        border-radius: 12px;
+        margin-bottom: 2.2rem;
+        box-shadow: 0 6px 24px -8px rgba(31,41,55,0.10);
+        transition: box-shadow 0.22s, transform 0.22s;
+        font-weight: 500;
+        letter-spacing: 0.01em;
+    }
+    .hero-desc:hover {
+        box-shadow: 0 12px 36px -12px rgba(31,41,55,0.17);
+        transform: scale(1.022);
+    }
+    .section-label {
+        display: inline-block;
+        font-family: 'EB Garamond', serif !important;
+        font-size: 1.29rem;
+        font-weight: 600;
+        color: #191c24;
+        background: #fff;
+        border-radius: 12px;
+        padding: 0.18em 1.15em 0.10em 1.15em;
+        margin-bottom: 1.05em;
+        margin-top: 0.7em;
+        letter-spacing: 0.02em;
+        box-shadow: 0 7px 22px -10px rgba(31,41,55,0.13);
+        transition: box-shadow 0.22s, transform 0.22s;
+        border: 1.7px solid #e8edf5;
+    }
+    .section-label:hover {
+        box-shadow: 0 16px 36px -14px rgba(31,41,55,0.20);
+        transform: scale(1.037);
+    }
+    .feature-card {
+        background: #fff;
+        color: #191c24;
+        padding: 2rem 1.4rem;
+        margin-bottom: 1.7rem;
+        border-radius: 18px;
+        box-shadow: 0 10px 28px -6px rgba(31, 41, 55, 0.14), 0 2px 4px rgba(0,0,0,0.06);
+        transition: transform 0.22s cubic-bezier(.18,.89,.32,1.28), box-shadow 0.22s, background 0.18s;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+        font-family: 'EB Garamond', serif !important;
+        border: 1.5px solid #e4eaf2;
+        backdrop-filter: blur(2px);
+    }
+    .feature-card:hover {
+        transform: translateY(-7px) scale(1.048);
+        box-shadow: 0 18px 36px -8px rgba(31,41,55,0.20), 0 4px 12px rgba(0,0,0,0.11);
+        background: linear-gradient(104deg, #f8f6f3 60%, #f5f3ef 100%);
+    }
+    .feature-title {
+        font-size: 1.27rem;
+        font-weight: 700;
+        margin-top: 0.7rem;
+        margin-bottom: 0.45rem;
+        color: #191c24;
+        font-family: 'EB Garamond', serif !important;
+        letter-spacing: 0.01em;
+    }
+    .footer {
+        text-align: center;
+        margin-top: 4rem;
+        padding: 2rem 0;
+        font-size: 0.98rem;
+        color: #e3e3e3;
+        background: rgba(25, 28, 36, 0.55);
+        border-top: 1px solid #ececec25;
+        font-family: 'EB Garamond', serif !important;
+    }
+    .dash-btn {
+        padding: 0.85rem 2.3rem;
+        font-weight: 600;
+        background: #fff;
+        color: #23272a;
+        border-radius: 10px;
+        font-size: 1.18rem;
+        margin-top: 2rem;
+        border: none;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+        transition: background 0.16s, color 0.16s, box-shadow 0.18s;
+        font-family: 'EB Garamond', serif !important;
+    }
+    .dash-btn:hover {
+        background: #ebe5dc;
+        color: #111;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+    @media (max-width: 900px) {
+        .feature-card { font-size: 0.98rem; }
+    }
+    @media (max-width: 600px) {
+        .feature-card { font-size: 0.93rem; padding: 1.3rem 0.7rem; }
+        .section-label { font-size: 1.05rem; }
+        .hero-title { font-size: 2rem !important; }
+    }
+    </style>
+""", unsafe_allow_html=True)
 
+# Hero Section (add anchor for nav)
 st.markdown("""
 <a id="home"></a>
 <div class="hero">
@@ -85,6 +325,7 @@ st.markdown("""
 </div>
 """.format(hero_description), unsafe_allow_html=True)
 
+# Our Approach Section (boxed label, nav anchor)
 st.markdown("""
 <a id="about"></a>
 <div style="text-align:center;">
@@ -108,6 +349,7 @@ for i, col in enumerate(about_cols):
             </div>
         """, unsafe_allow_html=True)
 
+# Key Features Section (boxed label, nav anchor)
 st.markdown("""
 <a id="ai-insights"></a>
 <div style="text-align:center; margin-top:2.5em;">
@@ -135,6 +377,7 @@ for i in range(0, len(features), 2):
                     </div>
                 """, unsafe_allow_html=True)
 
+# Get in Touch Section (boxed label, nav anchor)
 st.markdown("""
 <a id="contact"></a>
 <div style="text-align:center; margin-top:2.5em;">
@@ -148,6 +391,7 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
+# Footer
 st.markdown("""
     <div class="footer">
         &copy; 2025 QuantPilot. All rights reserved.
