@@ -6,28 +6,27 @@ hero_description = (
     "Transform complexity into clarity and make every decision count—no matter your experience level."
 )
 
-# --- SIDE NAVIGATION (collapsible, always visible, modern) ---
+# --- SIDE NAVIGATION (ALWAYS VISIBLE, RESPONSIVE, Z-INDEX HIGH, VISIBLE ON ALL SCREENS) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
-    /* Side Nav */
     .side-nav-container {
         position: fixed;
         top: 0;
         left: 0;
         height: 100vh;
-        width: 62px;
-        z-index: 9999;
-        background: rgba(255,255,255,0.94);
-        box-shadow: 2px 0 20px -8px rgba(31,41,55,0.13);
+        width: 60px;
+        z-index: 99999 !important;
+        background: rgba(255,255,255,0.98);
+        box-shadow: 2px 0 20px -8px rgba(31,41,55,0.18);
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: flex-start;
-        transition: width 0.22s cubic-bezier(.18,.89,.32,1.28);
+        transition: width 0.23s cubic-bezier(.18,.89,.32,1.28);
     }
     .side-nav-container.expanded {
-        width: 210px;
+        width: 200px;
     }
     .nav-toggle {
         margin-top: 1.4em;
@@ -57,7 +56,7 @@ st.markdown("""
         align-items: flex-start;
         opacity: 0;
         pointer-events: none;
-        transition: opacity 0.22s;
+        transition: opacity 0.23s;
         padding-left: 2px;
     }
     .side-nav-container.expanded .side-nav-links {
@@ -67,10 +66,10 @@ st.markdown("""
     .side-nav-link {
         font-family: 'EB Garamond', serif !important;
         color: #1a1b1f;
-        font-size: 1.19rem;
+        font-size: 1.14rem;
         font-weight: 600;
         text-decoration: none;
-        margin: 0.61em 0 0.61em 0.5em;
+        margin: 0.56em 0 0.56em 0.5em;
         padding: 0.22em 1em 0.22em 0.65em;
         border-radius: 8px 30px 30px 8px;
         transition: background 0.16s, color 0.18s, box-shadow 0.18s;
@@ -80,7 +79,7 @@ st.markdown("""
         display: flex;
         align-items: center;
         cursor: pointer;
-        opacity: 0.92;
+        opacity: 0.93;
         box-shadow: none;
     }
     .side-nav-link:hover, .side-nav-link.active {
@@ -96,31 +95,37 @@ st.markdown("""
         font-size: 1.0em;
         vertical-align: middle;
     }
-    /* Make room for nav: */
-    .stApp { margin-left: 62px !important; }
-    .side-nav-container.expanded ~ .stApp { margin-left: 210px !important; }
-    @media (max-width: 700px) {
-        .side-nav-container { width: 46px; }
-        .side-nav-container.expanded { width: 94vw; }
-        .side-nav-link { font-size: 1.05rem; }
-        .stApp { margin-left: 46px !important; }
-        .side-nav-container.expanded ~ .stApp { margin-left: 94vw !important; }
+    /* Always show links on large screens */
+    @media (min-width: 640px) {
+        .side-nav-container.expanded .side-nav-links { opacity: 1; pointer-events: auto; }
+        .side-nav-links { opacity: 1 !important; pointer-events: auto !important; }
     }
+    /* Make room for nav: */
+    .stApp { margin-left: 60px !important; }
+    .side-nav-container.expanded ~ .stApp { margin-left: 200px !important; }
+    @media (max-width: 700px) {
+        .side-nav-container { width: 44px; }
+        .side-nav-link { font-size: 1.00rem; }
+        .stApp { margin-left: 44px !important; }
+        .side-nav-container.expanded { width: 92vw; }
+        .side-nav-container.expanded ~ .stApp { margin-left: 92vw !important; }
+        .side-nav-links { font-size: 1.12rem; }
+    }
+    /* Ensure nav is always on top and visible */
+    body { overflow-x: visible !important; }
     </style>
     <script>
-    // Collapsible side nav logic
     window.addEventListener('DOMContentLoaded', function() {
         let nav = document.querySelector('.side-nav-container');
         let toggle = document.querySelector('.nav-toggle');
         if (toggle && nav) {
             toggle.onclick = function() {
                 nav.classList.toggle('expanded');
-                // Adjust margin for app content
                 let app = document.querySelector('.stApp');
                 if (nav.classList.contains('expanded')) {
-                    app.style.marginLeft = window.innerWidth < 700 ? '94vw' : '210px';
+                    app.style.marginLeft = window.innerWidth < 700 ? '92vw' : '200px';
                 } else {
-                    app.style.marginLeft = window.innerWidth < 700 ? '46px' : '62px';
+                    app.style.marginLeft = window.innerWidth < 700 ? '44px' : '60px';
                 }
             }
         }
