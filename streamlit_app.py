@@ -6,76 +6,155 @@ hero_description = (
     "Transform complexity into clarity and make every decision count—no matter your experience level."
 )
 
-# --- NAVIGATION BAR (fixed, beautiful, responsive) ---
+# --- SIDE NAVIGATION (collapsible, always visible, modern) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
-    .nav-bar {
+    /* Side Nav */
+    .side-nav-container {
         position: fixed;
         top: 0;
         left: 0;
-        width: 100vw;
-        z-index: 999;
-        background: rgba(255,255,255,0.92);
-        box-shadow: 0 6px 24px -10px rgba(31,41,55,0.16);
+        height: 100vh;
+        width: 62px;
+        z-index: 9999;
+        background: rgba(255,255,255,0.94);
+        box-shadow: 2px 0 20px -8px rgba(31,41,55,0.13);
         display: flex;
+        flex-direction: column;
         align-items: center;
-        justify-content: center;
-        padding: 0.5rem 0 0.5rem 0;
-        backdrop-filter: blur(6px);
+        justify-content: flex-start;
+        transition: width 0.22s cubic-bezier(.18,.89,.32,1.28);
     }
-    .nav-link {
+    .side-nav-container.expanded {
+        width: 210px;
+    }
+    .nav-toggle {
+        margin-top: 1.4em;
+        margin-bottom: 1.6em;
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 7px;
+        border-radius: 7px;
+        transition: background 0.17s;
+    }
+    .nav-toggle:hover {
+        background: #e7eaf6;
+    }
+    .dot-icon {
+        width: 26px;
+        height: 26px;
+        display: inline-block;
+        fill: #3b446a;
+        margin-left: 2px;
+    }
+    .side-nav-links {
+        margin-top: 2.6em;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.22s;
+        padding-left: 2px;
+    }
+    .side-nav-container.expanded .side-nav-links {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .side-nav-link {
         font-family: 'EB Garamond', serif !important;
         color: #1a1b1f;
-        font-size: 1.2rem;
+        font-size: 1.19rem;
         font-weight: 600;
         text-decoration: none;
-        margin: 0 1.6em;
-        padding: 0.25em 1.05em;
-        border-radius: 8px;
-        transition: background 0.17s, color 0.17s, box-shadow 0.18s, border 0.18s;
+        margin: 0.61em 0 0.61em 0.5em;
+        padding: 0.22em 1em 0.22em 0.65em;
+        border-radius: 8px 30px 30px 8px;
+        transition: background 0.16s, color 0.18s, box-shadow 0.18s;
         letter-spacing: 0.01em;
-        border: 2px solid transparent;
-        box-shadow: 0 2px 8px -6px #9992;
+        border-left: 3.5px solid transparent;
+        width: 87%;
+        display: flex;
+        align-items: center;
         cursor: pointer;
-        position: relative;
+        opacity: 0.92;
+        box-shadow: none;
     }
-    .nav-link:hover, .nav-link.active {
-        background: linear-gradient(105deg, #e4eafc 60%, #f3f7ff 100%);
+    .side-nav-link:hover, .side-nav-link.active {
+        background: linear-gradient(90deg, #e4eafc 75%, #f3f7ff 100%);
         color: #1946d2;
-        border: 2px solid #c1d0fa;
-        box-shadow: 0 4px 16px -4px #b9cfff77;
+        border-left: 3.5px solid #1946d2;
+        box-shadow: 0 2px 16px -8px #b9cfff55;
         text-decoration: none;
+        opacity: 1.0;
     }
-    .nav-logo {
-        height: 2.1em;
-        margin-right: 1.5em;
+    .side-nav-label {
+        margin-left: 0.7em;
+        font-size: 1.0em;
         vertical-align: middle;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px -2px #2222;
-        background: #fff;
-        padding: 2px 8px;
-        display: inline-block;
     }
-    .nav-spacer {
-        flex: 1 1 0;
-    }
+    /* Make room for nav: */
+    .stApp { margin-left: 62px !important; }
+    .side-nav-container.expanded ~ .stApp { margin-left: 210px !important; }
     @media (max-width: 700px) {
-        .nav-bar { flex-direction: column; gap: 0.2em; }
-        .nav-link { margin: 0.3em 0.77em; font-size: 1.02rem; }
-        .nav-logo { height: 1.7em; margin-right: 0.7em; }
+        .side-nav-container { width: 46px; }
+        .side-nav-container.expanded { width: 94vw; }
+        .side-nav-link { font-size: 1.05rem; }
+        .stApp { margin-left: 46px !important; }
+        .side-nav-container.expanded ~ .stApp { margin-left: 94vw !important; }
     }
-    .stApp { padding-top: 68px !important; }
     </style>
-    <nav class="nav-bar">
-        <a class="nav-link" href="#home">Home</a>
-        <a class="nav-link" href="/dashboard" target="_self">Dashboard</a>
-        <a class="nav-link" href="#ai-insights">AI Insights</a>
-        <a class="nav-link" href="#about">About</a>
-    </nav>
+    <script>
+    // Collapsible side nav logic
+    window.addEventListener('DOMContentLoaded', function() {
+        let nav = document.querySelector('.side-nav-container');
+        let toggle = document.querySelector('.nav-toggle');
+        if (toggle && nav) {
+            toggle.onclick = function() {
+                nav.classList.toggle('expanded');
+                // Adjust margin for app content
+                let app = document.querySelector('.stApp');
+                if (nav.classList.contains('expanded')) {
+                    app.style.marginLeft = window.innerWidth < 700 ? '94vw' : '210px';
+                } else {
+                    app.style.marginLeft = window.innerWidth < 700 ? '46px' : '62px';
+                }
+            }
+        }
+    });
+    </script>
+    <div class="side-nav-container">
+        <button class="nav-toggle" aria-label="Open navigation">
+            <svg class="dot-icon" viewBox="0 0 32 32">
+                <circle cx="6" cy="16" r="3"/>
+                <circle cx="16" cy="16" r="3"/>
+                <circle cx="26" cy="16" r="3"/>
+            </svg>
+        </button>
+        <div class="side-nav-links">
+            <a class="side-nav-link" href="#home">
+                <span class="side-nav-label">Home</span>
+            </a>
+            <a class="side-nav-link" href="/dashboard" target="_self">
+                <span class="side-nav-label">Dashboard</span>
+            </a>
+            <a class="side-nav-link" href="#ai-insights">
+                <span class="side-nav-label">AI Insights</span>
+            </a>
+            <a class="side-nav-link" href="#about">
+                <span class="side-nav-label">About</span>
+            </a>
+            <a class="side-nav-link" href="#contact">
+                <span class="side-nav-label">Contact</span>
+            </a>
+        </div>
+    </div>
 """, unsafe_allow_html=True)
 
-# --- END NAV BAR ---
+# --- END SIDE NAV ---
 
 # Global style for full-page background and EB Garamond font
 st.markdown("""
