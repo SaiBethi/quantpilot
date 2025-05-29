@@ -1,36 +1,77 @@
 import yfinance as yf
 import streamlit as st
 import pandas as pd
+import plotly.graph_objects as go
+from datetime import datetime
+import numpy as np
+
+st.set_page_config(page_title="QuantPilot", layout="wide")
 
 st.title("📈 QuantPilot: AI-Powered Stock Dashboard")
 
-ticker = st.text_input("Enter stock ticker (e.g., AAPL)", value="SMCI")
-start_date = st.date_input("Start Date", value=pd.to_datetime("2022-01-01"))
-end_date = st.date_input("End Date", value=pd.to_datetime("2025-06-19"))
+# Sidebar input
+ticker = st.sidebar.text_input("Enter stock ticker (e.g., AAPL)", value="SMCI")
+start_date = st.sidebar.date_input("Start Date", value=datetime(2022, 1, 1))
+end_date = st.sidebar.date_input("End Date", value=datetime(2025, 6, 19))
 
+# Download data
+@st.cache_data(ttl=3600)
+def get_data(ticker, start, end):
+    df = yf.download(ticker, start=start, end=end, auto_adjust=True)
+    df['MA20'] = df['Close'].rolling(window=20).mean()
+    df['MA50'] = df['Close'].rolling(window=50).mean()
+    df['Returns'] = df['Close'].pct_change()
+    df['RSI'] = compute_rsi(df['Close'], 14)
+    df['MACD'], df['Signal'] = compute_macd(df['Close'])
+    return df
+
+# RSI Function
+def compute_rsi(series, period=14):
+    delta = series.diff()
+    gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
+    loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
+    rs = gain / loss
+    return 100 - (100 / (1 + rs))
+
+# MACD Function
+def compute_macd(series):
+    exp1 = series.ewm(span=12, adjust=False).mean()
+    exp2 = series.ewm(span=26, adjust=False).mean()
+    macd = exp1 - exp2
+    signal = macd.ewm(span=9, adjust=False).mean()
+    return macd, signal
+
+# Get data
 if ticker:
-    # Download data
-    raw_data = yf.download(ticker, start=start_date, end=end_date, group_by='ticker', auto_adjust=True)
+    try:
+        df = get_data(ticker, start_date, end_date)
 
-    # If data has MultiIndex, flatten it
-    if isinstance(raw_data.columns, pd.MultiIndex):
-        raw_data.columns = ['_'.join(col).strip() for col in raw_data.columns.values]
-    else:
-        raw_data.columns = [col.strip() for col in raw_data.columns]
+        # Display chart
+        st.subheader(f"📊 Price Chart for {ticker}")
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=df.index, y=df['Close'], mode='lines', name='Close'))
+        fig.add_trace(go.Scatter(x=df.index, y=df['MA20'], mode='lines', name='MA20'))
+        fig.add_trace(go.Scatter(x=df.index, y=df['MA50'], mode='lines', name='MA50'))
+        fig.update_layout(height=500, xaxis_title='Date', yaxis_title='Price', template="plotly_white")
+        st.plotly_chart(fig, use_container_width=True)
 
-    # Determine close price column
-    possible_close_cols = [col for col in raw_data.columns if 'Close' in col]
-    if not possible_close_cols:
-        st.error("Couldn't find a 'Close' column for this ticker. Try another.")
-    else:
-        close_col = possible_close_cols[0]
+        # Indicators
+        with st.expander("📐 Technical Indicators"):
+            st.line_chart(df[['RSI']].dropna(), height=150, use_container_width=True)
+            st.line_chart(df[['MACD', 'Signal']].dropna(), height=150, use_container_width=True)
 
-        # Compute moving averages
-        raw_data['MA20'] = raw_data[close_col].rolling(window=20).mean()
-        raw_data['MA50'] = raw_data[close_col].rolling(window=50).mean()
+        # Fundamentals
+        with st.expander("📄 Stock Summary Info"):
+            stock = yf.Ticker(ticker)
+            info = stock.info
+            st.markdown(f"**Name**: {info.get('shortName', 'N/A')}")
+            st.markdown(f"**Market Cap**: {info.get('marketCap', 'N/A')}")
+            st.markdown(f"**Sector**: {info.get('sector', 'N/A')}")
+            st.markdown(f"**PE Ratio (TTM)**: {info.get('trailingPE', 'N/A')}")
+            st.markdown(f"**Dividend Yield**: {info.get('dividendYield', 'N/A')}")
 
-        # Only keep valid columns for charting
-        plot_cols = [col for col in [close_col, 'MA20', 'MA50'] if col in raw_data.columns]
+        # Download data
+        st.download_button("📥 Download Data as CSV", df.to_csv().encode(), file_name=f"{ticker}_data.csv", mime="text/csv")
 
-        st.subheader(f"Price chart for {ticker}")
-        st.line_chart(raw_data[plot_cols])
+    except Exception as e:
+        st.error(f"Error fetching data: {e}")
