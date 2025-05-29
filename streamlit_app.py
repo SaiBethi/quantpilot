@@ -6,20 +6,89 @@ hero_description = (
     "Transform complexity into clarity and make every decision count—no matter your experience level."
 )
 
-# Global style for full-page background, Garamond, and more visual lift
+# --- NAVIGATION BAR (fixed, beautiful, responsive) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
+    .nav-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        z-index: 999;
+        background: rgba(255,255,255,0.92);
+        box-shadow: 0 6px 24px -10px rgba(31,41,55,0.16);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem 0 0.5rem 0;
+        backdrop-filter: blur(6px);
+    }
+    .nav-link {
+        font-family: 'EB Garamond', serif !important;
+        color: #1a1b1f;
+        font-size: 1.2rem;
+        font-weight: 600;
+        text-decoration: none;
+        margin: 0 1.6em;
+        padding: 0.25em 1.05em;
+        border-radius: 8px;
+        transition: background 0.17s, color 0.17s, box-shadow 0.18s, border 0.18s;
+        letter-spacing: 0.01em;
+        border: 2px solid transparent;
+        box-shadow: 0 2px 8px -6px #9992;
+        cursor: pointer;
+        position: relative;
+    }
+    .nav-link:hover, .nav-link.active {
+        background: linear-gradient(105deg, #e4eafc 60%, #f3f7ff 100%);
+        color: #1946d2;
+        border: 2px solid #c1d0fa;
+        box-shadow: 0 4px 16px -4px #b9cfff77;
+        text-decoration: none;
+    }
+    .nav-logo {
+        height: 2.1em;
+        margin-right: 1.5em;
+        vertical-align: middle;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px -2px #2222;
+        background: #fff;
+        padding: 2px 8px;
+        display: inline-block;
+    }
+    .nav-spacer {
+        flex: 1 1 0;
+    }
+    @media (max-width: 700px) {
+        .nav-bar { flex-direction: column; gap: 0.2em; }
+        .nav-link { margin: 0.3em 0.77em; font-size: 1.02rem; }
+        .nav-logo { height: 1.7em; margin-right: 0.7em; }
+    }
+    .stApp { padding-top: 68px !important; }
+    </style>
+    <nav class="nav-bar">
+        <a class="nav-link" href="#home">Home</a>
+        <a class="nav-link" href="/dashboard" target="_self">Dashboard</a>
+        <a class="nav-link" href="#ai-insights">AI Insights</a>
+        <a class="nav-link" href="#about">About</a>
+    </nav>
+""", unsafe_allow_html=True)
 
+# --- END NAV BAR ---
+
+# Global style for full-page background and EB Garamond font
+st.markdown("""
+    <style>
     html, body, [class*="css"]  {
         font-family: 'EB Garamond', serif !important;
         scroll-behavior: smooth;
-        min-height: 100vh;
         background: 
             linear-gradient(110deg, rgba(25, 28, 36, 0.68) 60%, rgba(31,84,193, 0.18) 100%),
             url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2015&q=80') no-repeat center center fixed;
         background-size: cover !important;
         background-attachment: fixed !important;
+        min-height: 100vh;
     }
     .main, .stApp {
         background: transparent !important;
@@ -158,25 +227,26 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Hero Section
+# Hero Section (add anchor for nav)
 st.markdown("""
-    <div class="hero">
-        <div class="hero-title" style="margin-bottom:0.45em;">📈 QuantPilot</div>
-        <div></div>
-        <div class="hero-desc">{}</div>
-        <div>
-            <a href="/dashboard" target="_self" style="text-decoration: none;">
-                <button class="dash-btn">Launch Dashboard</button>
-            </a>
-        </div>
+<a id="home"></a>
+<div class="hero">
+    <div class="hero-title" style="margin-bottom:0.45em;">📈 QuantPilot</div>
+    <div class="hero-desc">{}</div>
+    <div>
+        <a href="/dashboard" target="_self" style="text-decoration: none;">
+            <button class="dash-btn">Launch Dashboard</button>
+        </a>
     </div>
+</div>
 """.format(hero_description), unsafe_allow_html=True)
 
-# Our Approach Section (boxed label)
+# Our Approach Section (boxed label, nav anchor)
 st.markdown("""
-    <div style="text-align:center;">
-        <div class="section-label">Our Approach</div>
-    </div>
+<a id="about"></a>
+<div style="text-align:center;">
+    <div class="section-label">Our Approach</div>
+</div>
 """, unsafe_allow_html=True)
 
 about_cols = st.columns(3)
@@ -195,11 +265,12 @@ for i, col in enumerate(about_cols):
             </div>
         """, unsafe_allow_html=True)
 
-# Key Features Section (boxed label)
+# Key Features Section (boxed label, nav anchor)
 st.markdown("""
-    <div style="text-align:center; margin-top:2.5em;">
-        <div class="section-label">Key Features</div>
-    </div>
+<a id="ai-insights"></a>
+<div style="text-align:center; margin-top:2.5em;">
+    <div class="section-label">Key Features</div>
+</div>
 """, unsafe_allow_html=True)
 features = [
     ("📉", "Interactive Charts", "Dynamic, zoomable charts that update in real-time as you explore and adjust parameters—making your data come alive."),
@@ -222,11 +293,12 @@ for i in range(0, len(features), 2):
                     </div>
                 """, unsafe_allow_html=True)
 
-# Get in Touch Section (boxed label)
+# Get in Touch Section (boxed label, nav anchor)
 st.markdown("""
-    <div style="text-align:center; margin-top:2.5em;">
-        <div class="section-label">Get in Touch</div>
-    </div>
+<a id="contact"></a>
+<div style="text-align:center; margin-top:2.5em;">
+    <div class="section-label">Get in Touch</div>
+</div>
 """, unsafe_allow_html=True)
 st.markdown("""
     <div class="feature-card" style="text-align:center;">
