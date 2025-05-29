@@ -1,0 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond&display=swap');
+
+body, div, span, input, button, textarea {
+    font-family: 'EB Garamond', serif !important;
+    color: #0e1117;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'EB Garamond', serif !important;
+    font-weight: 700;
+    color: #002855;
+}
+
+.stButton > button {
+    background-color: #004aad;
+    color: white;
+    border-radius: 10px;
+    padding: 10px 24px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.stButton > button:hover {
+    background-color: #002855;
+    cursor: pointer;
+}
+
+.stMarkdown p {
+    font-size: 16px;
+    line-height: 1.5em;
+}
