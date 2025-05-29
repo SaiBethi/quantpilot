@@ -1,7 +1,6 @@
 import streamlit as st
-import streamlit.components.v1 as components
 
-# Set custom font and styling
+# Set custom font and improved responsive styling
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
@@ -17,31 +16,79 @@ st.markdown("""
         background-position: center;
         background-attachment: fixed;
         color: white;
-        padding: 100px 30px;
+        padding: 8vw 5vw 6vw 5vw;
         text-align: center;
+    }
+    @media (max-width: 768px) {
+        .hero {
+            padding: 18vw 4vw 10vw 4vw;
+        }
+        .section-title {
+            font-size: 2rem !important;
+        }
     }
     .section-title {
         text-align: center;
         font-size: 2.5rem;
         margin: 2rem 0 1rem;
+        font-weight: 600;
+        letter-spacing: 0.03em;
     }
     .feature-card {
-        background-color: white;
-        padding: 2rem;
+        background: rgba(255,255,255,0.95);
+        padding: 2rem 1.4rem;
         margin-bottom: 1.5rem;
-        border-radius: 12px;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        border-radius: 16px;
+        box-shadow: 0 10px 24px -6px rgba(31, 41, 55, 0.13), 0 2px 4px rgba(0,0,0,0.03);
+        transition: transform 0.22s cubic-bezier(.18,.89,.32,1.28), box-shadow 0.22s;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+    }
+    .feature-card:hover {
+        transform: translateY(-7px) scale(1.04);
+        box-shadow: 0 16px 32px -8px rgba(31,41,55,0.18), 0 4px 12px rgba(0,0,0,0.07);
+        background: linear-gradient(105deg, #f0ede9 60%, #e8e3dc 100%);
     }
     .feature-title {
-        font-size: 1.25rem;
-        font-weight: 600;
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-top: 0.8rem;
+        margin-bottom: 0.4rem;
     }
     .footer {
         text-align: center;
         margin-top: 4rem;
         padding: 2rem 0;
-        font-size: 0.9rem;
+        font-size: 0.98rem;
         color: #6B7280;
+        background: #f8f8f8;
+        border-top: 1px solid #ececec;
+    }
+    .dash-btn {
+        padding: 0.85rem 2.3rem;
+        font-weight: 600;
+        background: white;
+        color: #2d3748;
+        border-radius: 10px;
+        font-size: 1.18rem;
+        margin-top: 2rem;
+        border: none;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+        transition: background 0.16s, color 0.16s, box-shadow 0.18s;
+    }
+    .dash-btn:hover {
+        background: #e6e0d8;
+        color: #111;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+    /* Responsive columns for features */
+    @media (max-width: 900px) {
+        .feature-card { font-size: 0.98rem; }
+    }
+    @media (max-width: 600px) {
+        .feature-card { font-size: 0.93rem; padding: 1.3rem 0.7rem; }
     }
     </style>
 """, unsafe_allow_html=True)
@@ -49,31 +96,29 @@ st.markdown("""
 # Hero Section
 st.markdown("""
     <div class="hero">
-        <h1 style="font-size: 4rem; font-weight: bold;">📈 QuantPilot</h1>
-        <p style="font-size: 1.5rem; max-width: 700px; margin: 1rem auto;">
+        <h1 style="font-size: min(10vw, 4.5rem); font-weight: bold; margin-bottom: 0.6em;">📈 QuantPilot</h1>
+        <p style="font-size: min(4vw, 1.6rem); max-width: 720px; margin: 1.2rem auto 0.5em;">
             AI-powered financial analytics for data-driven investment decisions
         </p>
-        <a href="/dashboard" target="_self">
-            <button style="padding: 0.75rem 2rem; font-weight: bold; background-color: white; color: #1f2937; border-radius: 8px; font-size: 1rem; margin-top: 1.5rem;">Launch Dashboard</button>
+        <a href="/dashboard" target="_self" style="text-decoration: none;">
+            <button class="dash-btn">Launch Dashboard</button>
         </a>
     </div>
 """, unsafe_allow_html=True)
 
 # About Section
 st.markdown("<h2 class='section-title'>About QuantPilot</h2>", unsafe_allow_html=True)
-cols = st.columns(3)
-
+about_cols = st.columns(3)
 about_data = [
     ("🔍", "Advanced Analytics", "QuantPilot leverages cutting-edge algorithms to analyze financial data with precision, uncovering hidden patterns and opportunities."),
     ("🤖", "AI-Powered", "Our machine learning models continuously learn from market data to provide increasingly accurate predictions and insights."),
     ("📊", "Visual Intelligence", "Complex financial data transformed into intuitive visualizations that tell the story behind the numbers.")
 ]
-
-for i, col in enumerate(cols):
+for i, col in enumerate(about_cols):
     with col:
         st.markdown(f"""
-            <div class="feature-card">
-                <div style="font-size: 2rem;">{about_data[i][0]}</div>
+            <div class="feature-card" style="min-height: 210px;">
+                <div style="font-size: 2.1rem;">{about_data[i][0]}</div>
                 <div class="feature-title">{about_data[i][1]}</div>
                 <p style="color: #4B5563">{about_data[i][2]}</p>
             </div>
@@ -88,13 +133,12 @@ features = [
     ("📋", "Stock Summary", "View essential metrics like PE ratio, market cap, and dividend yield at a glance."),
     ("📁", "Downloadable Reports", "Export your results and insights in CSV format for offline analysis or presentation.")
 ]
-
 for i in range(0, len(features), 2):
     cols = st.columns(2)
     for j in range(2):
         if i + j < len(features):
+            icon, title, desc = features[i + j]
             with cols[j]:
-                icon, title, desc = features[i + j]
                 st.markdown(f"""
                     <div class="feature-card">
                         <div style="font-size: 2rem;">{icon}</div>
