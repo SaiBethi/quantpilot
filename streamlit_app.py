@@ -35,7 +35,12 @@ st.markdown("""
         color: #111;
         box-shadow: 0 4px 16px rgba(0,0,0,0.15);
     }
-    h1, h2, h3, h4, h5, h6, .stMarkdown {
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'EB Garamond', serif !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.01em;
+    }
+    .stMarkdown, .indicator-card, .ai-suggestion, .stat-table {
         font-family: 'EB Garamond', serif !important;
     }
     .block-container {
@@ -50,17 +55,48 @@ st.markdown("""
         margin: 0.7em 0 1.1em 0;
         box-shadow: 0 2px 8px rgba(200,180,140,0.07);
         border: 1.5px solid #e7dbc9;
+        font-size: 1.13em;
     }
     .ai-suggestion {
         background: #f6f1e7;
         border-radius: 1em;
         padding: 1em 1.5em;
-        margin: 0.7em 0 1.1em 0;
+        margin: 0.7em 0 1.3em 0;
         box-shadow: 0 2px 8px rgba(190,170,130,0.09);
         border: 1.5px solid #e7dbc9;
-        font-size: 1.05em;
+        font-size: 1.13em;
         font-weight: 500;
         color: #5f4100;
+    }
+    .section-header {
+        font-size: 1.75em !important;
+        margin-top: 1.4em !important;
+        margin-bottom: 0.6em !important;
+        font-family: 'EB Garamond', serif !important;
+        font-weight: 700 !important;
+        color: #543600;
+        letter-spacing: 0.01em;
+    }
+    .stat-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0.7em 0 1.3em 0;
+        font-size: 1.13em;
+    }
+    .stat-table th, .stat-table td {
+        border: none;
+        text-align: left;
+        padding: 0.37em 1.3em 0.37em 0;
+        vertical-align: middle;
+        font-family: 'EB Garamond', serif !important;
+    }
+    .stat-table th {
+        color: #805400;
+        font-weight: 700;
+        background: none;
+    }
+    .stat-table td {
+        color: #39322a;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -97,18 +133,18 @@ with st.expander("① Start Here: Select Tickers and Date Range", expanded=True)
         interval = st.selectbox("Interval", ["1d", "1wk", "1mo"], index=0)
     st.caption("💡 Add more tickers separated by commas for multi-stock analysis.")
 
-st.markdown("<div class='indicator-card'><h2 style='margin-top:0'>② Indicator Explanations</h2>"
-            "<ul style='font-size:1.08em;'>"
+st.markdown("<div class='indicator-card'><span class='section-header'>② Indicator Explanations</span>"
+            "<ul style='font-size:1.13em; margin-top:0.5em;'>"
             "<li><b>Candlestick Chart:</b> Shows price open, high, low, and close for each period.</li>"
-            "<li><b>Simple Moving Averages (MA20, MA50, MA100, MA200):</b> Averages of closing price over 20/50/100/200 periods. Show trend direction.</li>"
+            "<li><b>Simple Moving Averages (MA20, MA50, MA100, MA200):</b> Averages over 20/50/100/200 periods to show trend direction.</li>"
             "<li><b>Exponential Moving Averages (EMA20, EMA50, EMA100, EMA200):</b> Like SMAs but react faster to recent price changes.</li>"
             "<li><b>Daily % Change:</b> Shows daily momentum (positive = up, negative = down).</li>"
             "<li><b>Volatility (20-day Rolling Std):</b> Measures how much price moves up/down (higher = more volatile).</li>"
-            "<li><b>Volume Bars:</b> Number of shares traded each period.</li>"
-            "<li><b>AI Suggestion:</b> Considers price vs. averages, volatility, and momentum to give you a trading insight.</li>"
+            "<li><b>Volume Traded:</b> Number of shares traded each period.</li>"
+            "<li><b>AI Suggestion:</b> Combines trend, volatility, and momentum for a final verdict and risk profile.</li>"
             "</ul></div>", unsafe_allow_html=True)
 
-st.markdown("<h2 style='margin-top:2em;'>③ Stock Data & Analysis</h2>", unsafe_allow_html=True)
+st.markdown("<span class='section-header'>③ Stock Data & Analysis</span>", unsafe_allow_html=True)
 if st.button("Get Data & Analyze", key="getdata"):
     data = yf.download(tickers, start=start, end=end, interval=interval, group_by='ticker', auto_adjust=True)
     if data.empty:
@@ -119,7 +155,7 @@ if st.button("Get Data & Analyze", key="getdata"):
 
         for ticker in tickers:
             st.markdown(
-                f"<h3 style='margin-top:1.5em; margin-bottom:0.4em;'>{ticker}</h3>",
+                f"<h3 style='margin-top:1.5em; margin-bottom:0.4em; font-family:EB Garamond,serif; color:#543600;'>{ticker}</h3>",
                 unsafe_allow_html=True
             )
             close_col = f"Close_{ticker}" if f"Close_{ticker}" in data.columns else f"{ticker}_Close"
@@ -148,7 +184,7 @@ if st.button("Get Data & Analyze", key="getdata"):
             # --- Volatility (20-day rolling std) ---
             df['Volatility (20d)'] = df[close_col].rolling(window=20).std()
 
-            st.markdown("<div class='indicator-card'><h4>📊 Price Chart & Indicators</h4></div>", unsafe_allow_html=True)
+            st.markdown("<div class='indicator-card'><b>📊 Price Chart & Indicators</b></div>", unsafe_allow_html=True)
             fig = go.Figure()
             fig.add_trace(go.Candlestick(
                 x=df.index, open=df[open_col], high=df[high_col], low=df[low_col], close=df[close_col],
@@ -205,13 +241,18 @@ if st.button("Get Data & Analyze", key="getdata"):
             st.markdown("<div class='indicator-card'><b>📋 Key Stats for this Period</b>", unsafe_allow_html=True)
             latest_close = df[close_col].dropna().iloc[-1] if df[close_col].notna().any() else float('nan')
             latest_vol = df[vol_col].dropna().iloc[-1] if vol_col in df.columns and df[vol_col].notna().any() else float('nan')
-            st.write(f"<span style='font-size:1.12em'><b>Latest Close:</b> ${latest_close:.2f}</span>", unsafe_allow_html=True)
-            st.write(f"<b>Volume:</b> {latest_vol:,.0f}")
-            st.write(f"<b>High (period):</b> ${df[high_col].max():.2f}" if high_col in df.columns else "")
-            st.write(f"<b>Low (period):</b> ${df[low_col].min():.2f}" if low_col in df.columns else "")
-            st.write(f"<b>Total Trading Days:</b> {len(df)}")
-            st.write(f"<b>Mean Volatility (20d):</b> {df['Volatility (20d)'].dropna().mean():.3f}")
-            st.write(f"<b>Mean Daily % Change:</b> {df['Daily % Change'].dropna().mean():.3f}%")
+            stat_table = f"""
+            <table class="stat-table">
+            <tr><th>Latest Close</th><td>${latest_close:.2f}</td></tr>
+            <tr><th>Volume</th><td>{int(latest_vol):,}</td></tr>
+            {"<tr><th>High (period)</th><td>${:.2f}</td></tr>".format(df[high_col].max()) if high_col in df.columns else ""}
+            {"<tr><th>Low (period)</th><td>${:.2f}</td></tr>".format(df[low_col].min()) if low_col in df.columns else ""}
+            <tr><th>Total Trading Days</th><td>{len(df)}</td></tr>
+            <tr><th>Mean Volatility (20d)</th><td>{df['Volatility (20d)'].dropna().mean():.3f}</td></tr>
+            <tr><th>Mean Daily % Change</th><td>{df['Daily % Change'].dropna().mean():.3f}%</td></tr>
+            </table>
+            """
+            st.markdown(stat_table, unsafe_allow_html=True)
             st.markdown("</div>", unsafe_allow_html=True)
 
             st.download_button(
@@ -224,41 +265,63 @@ if st.button("Get Data & Analyze", key="getdata"):
             # ---- AI-Powered Trading Suggestion ----
             st.markdown("<div class='ai-suggestion'><b>🤖 AI-Powered Trading Suggestion</b><br>", unsafe_allow_html=True)
             ai_text = []
-            # Trend signals
             ma_short, ma_med, ma_long = df['MA20'].dropna(), df['MA50'].dropna(), df['MA200'].dropna()
+            # --- Trend logic
+            verdict, safe_pct, risky_pct = "HOLD", 0, 0
             if not ma_short.empty and not ma_med.empty and not ma_long.empty:
                 if latest_close > ma_short.iloc[-1] and latest_close > ma_med.iloc[-1] and latest_close > ma_long.iloc[-1]:
-                    ai_text.append("🚀 All main trends (short/medium/long-term) are bullish. Uptrend across the board.")
+                    ai_text.append("🚀 All trends (short/medium/long-term) are bullish. Strong uptrend.")
+                    verdict = "BUY"
                 elif latest_close < ma_short.iloc[-1] and latest_close < ma_med.iloc[-1] and latest_close < ma_long.iloc[-1]:
-                    ai_text.append("🔻 All main trends are bearish. Downtrend across the board.")
+                    ai_text.append("🔻 All trends are bearish. Strong downtrend.")
+                    verdict = "SELL"
                 elif latest_close > ma_short.iloc[-1] and latest_close > ma_med.iloc[-1]:
                     ai_text.append("↗️ Short/medium-term trend is bullish.")
+                    verdict = "BUY"
                 elif latest_close < ma_short.iloc[-1] and latest_close < ma_med.iloc[-1]:
                     ai_text.append("↘️ Short/medium-term trend is bearish.")
+                    verdict = "SELL"
                 else:
-                    ai_text.append("⏸️ The trend is mixed. Watch for consolidation or breakout.")
-            # Volatility
+                    ai_text.append("⏸️ Mixed trends. Consider holding or waiting for clarity.")
+                    verdict = "HOLD"
+            # --- Volatility
             recent_volatility = df['Volatility (20d)'].dropna().iloc[-1] if df['Volatility (20d)'].notna().any() else 0
             avg_volatility = df['Volatility (20d)'].dropna().mean() if df['Volatility (20d)'].notna().any() else 0
             if recent_volatility and avg_volatility:
                 if recent_volatility > 1.2 * avg_volatility:
-                    ai_text.append("⚡ Volatility is HIGH: Expect large price swings.")
+                    ai_text.append("⚡ Volatility is HIGH: Expect major price swings.")
                 elif recent_volatility < 0.8 * avg_volatility:
-                    ai_text.append("🔕 Volatility is LOW: Market is calmer.")
+                    ai_text.append("🔕 Volatility is LOW: Market is calm.")
                 else:
                     ai_text.append("📏 Volatility is moderate.")
-            # Momentum
+            # --- Momentum
             latest_mom = df['Daily % Change'].dropna().iloc[-1] if df['Daily % Change'].notna().any() else 0
             if latest_mom > 1.5:
-                ai_text.append("📈 Momentum is strong and positive.")
+                ai_text.append("📈 Strong positive momentum today.")
             elif latest_mom < -1.5:
-                ai_text.append("📉 Momentum is strong and negative.")
+                ai_text.append("📉 Strong negative momentum today.")
             else:
                 ai_text.append("🔄 Momentum is neutral.")
-            # Final answer
-            if not ai_text:
-                ai_text = ["Not enough data for a suggestion."]
-            st.markdown("<br>".join(ai_text) + "</div>", unsafe_allow_html=True)
+            # --- Final verdict logic
+            if verdict == "BUY":
+                safe_pct = 0.3
+                risky_pct = 0.6 if recent_volatility < 1.2 * avg_volatility else 0.3
+            elif verdict == "SELL":
+                safe_pct = 0.3
+                risky_pct = 0.7 if recent_volatility > 1.2 * avg_volatility else 0.45
+            else:  # HOLD or unclear
+                safe_pct = 0.1
+                risky_pct = 0.2
+            verdict_color = {"BUY": "#189c3a", "SELL": "#c12b2b", "HOLD": "#b29c5a"}
+            st.markdown(
+                f"<div style='margin-top:0.8em; font-size:1.18em;'><b>Final Verdict: "
+                f"<span style='color:{verdict_color[verdict]}'>{verdict}</span></b></div>"
+                f"<div style='font-size:1.08em; margin-top:0.2em;'>"
+                f"<b>Safe allocation:</b> {int(safe_pct * 100)}%<br>"
+                f"<b>Risky allocation:</b> {int(risky_pct * 100)}%</div>",
+                unsafe_allow_html=True
+            )
+            st.markdown("<div style='margin-top:0.7em;'>" + "<br>".join(ai_text) + "</div></div>", unsafe_allow_html=True)
             st.caption("(*These suggestions are rule-based and for educational purposes. Always research thoroughly before investing!*)")
 
 with st.expander("About QuantPilot"):
