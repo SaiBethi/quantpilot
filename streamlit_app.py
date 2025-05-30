@@ -3,7 +3,6 @@ import yfinance as yf
 import pandas as pd
 import plotly.express as px
 
-# Optional: For technical indicators
 try:
     import pandas_ta as ta
     TA_INSTALLED = True
@@ -12,7 +11,6 @@ except ImportError:
 
 st.set_page_config(page_title="QuantPilot: All-in-One Dashboard", layout="wide")
 
-# ---- EB Garamond and style ----
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
@@ -106,104 +104,115 @@ st.markdown("""
 
 st.markdown("<h2 style='margin-top:2em;'>④ Stock Data & Analysis</h2>", unsafe_allow_html=True)
 if st.button("Get Data & Analyze", key="getdata"):
-    for ticker in tickers:
-        if not ticker:
-            continue
-        st.markdown(f"<h3 style='margin-top:1.5em; margin-bottom:0.4em;'>{ticker}</h3>", unsafe_allow_html=True)
-        try:
-            data = yf.download(ticker, start=start, end=end, interval=interval)
-        except Exception as e:
-            st.error(f"Error fetching {ticker}: {str(e)}")
-            continue
+    # Download all tickers as one DataFrame (MultiIndex columns)
+    data = yf.download(tickers, start=start, end=end, interval=interval, group_by='ticker', auto_adjust=True)
+    if data.empty:
+        st.error("No data found for these tickers in the selected date range.")
+    else:
+        # FLATTEN MultiIndex columns if present
+        if isinstance(data.columns, pd.MultiIndex):
+            data.columns = ["_".join([str(i) for i in col if i]) for col in data.columns.values]
 
-        if not data.empty:
+        for ticker in tickers:
+            st.markdown(f"<h3 style='margin-top:1.5em; margin-bottom:0.4em;'>{ticker}</h3>", unsafe_allow_html=True)
+            # Find columns for this ticker (e.g. Close_AAPL)
+            close_col = f"Close_{ticker}" if f"Close_{ticker}" in data.columns else f"{ticker}_Close"
+            high_col = f"High_{ticker}" if f"High_{ticker}" in data.columns else f"{ticker}_High"
+            low_col = f"Low_{ticker}" if f"Low_{ticker}" in data.columns else f"{ticker}_Low"
+            vol_col = f"Volume_{ticker}" if f"Volume_{ticker}" in data.columns else f"{ticker}_Volume"
+
+            # If ticker not present, skip
+            if close_col not in data.columns:
+                st.warning(f"No data for {ticker}.")
+                continue
+
             # Calculate indicators
+            df = data[[c for c in [close_col, high_col, low_col, vol_col] if c in data.columns]].copy()
             if TA_INSTALLED:
                 if "RSI" in indicators:
-                    data['RSI'] = ta.rsi(data['Close'], length=14)
+                    df['RSI'] = ta.rsi(df[close_col], length=14)
                 if "EMA20" in indicators:
-                    data['EMA20'] = ta.ema(data['Close'], length=20)
+                    df['EMA20'] = ta.ema(df[close_col], length=20)
                 if "SMA50" in indicators:
-                    data['SMA50'] = ta.sma(data['Close'], length=50)
+                    df['SMA50'] = ta.sma(df[close_col], length=50)
                 if "MACD" in indicators:
-                    macd = ta.macd(data['Close'])
-                    data = pd.concat([data, macd], axis=1)
+                    macd = ta.macd(df[close_col])
+                    for c in macd.columns:
+                        df[c] = macd[c]
                 if "BB" in indicators:
-                    bb = ta.bbands(data['Close'])
-                    data = pd.concat([data, bb], axis=1)
-                if "VWAP" in indicators:
-                    data['VWAP'] = ta.vwap(data['High'], data['Low'], data['Close'], data['Volume'])
-                if "ATR" in indicators:
-                    data['ATR'] = ta.atr(data['High'], data['Low'], data['Close'])
+                    bb = ta.bbands(df[close_col])
+                    for c in bb.columns:
+                        df[c] = bb[c]
+                if "VWAP" in indicators and all(x in df.columns for x in [high_col, low_col, close_col, vol_col]):
+                    df['VWAP'] = ta.vwap(df[high_col], df[low_col], df[close_col], df[vol_col])
+                if "ATR" in indicators and all(x in df.columns for x in [high_col, low_col, close_col]):
+                    df['ATR'] = ta.atr(df[high_col], df[low_col], df[close_col])
                 if "EMA100" in indicators:
-                    data['EMA100'] = ta.ema(data['Close'], length=100)
+                    df['EMA100'] = ta.ema(df[close_col], length=100)
             else:
-                data['MA20'] = data['Close'].rolling(window=20).mean()
-                data['MA50'] = data['Close'].rolling(window=50).mean()
+                df['MA20'] = df[close_col].rolling(window=20).mean()
+                df['MA50'] = df[close_col].rolling(window=50).mean()
 
             st.markdown("<h4>📊 Price Chart & Indicators</h4>", unsafe_allow_html=True)
-            possible_cols = ["Close", "EMA20", "SMA50", "EMA100", "VWAP", "BBL_5_2.0", "BBU_5_2.0", "MA20", "MA50"]
-
-            # PERMANENT FIX: Only include columns that exist, are Series, and are not all NaN. No ambiguous truth values!
+            possible_cols = [close_col, "EMA20", "SMA50", "EMA100", "VWAP", "BBL_5_2.0", "BBU_5_2.0", "MA20", "MA50"]
             chart_cols = []
             for col in possible_cols:
-                series = data.get(col, None)
-                if series is not None and isinstance(series, pd.Series) and series.notna().any():
+                if col in df.columns and isinstance(df[col], pd.Series) and df[col].notna().any():
                     chart_cols.append(col)
-
             if len(chart_cols) > 0:
-                fig = px.line(data, x=data.index, y=chart_cols, title=f"{ticker} Closing Price & Indicators", labels={"value": "Price"})
+                fig = px.line(df, x=df.index, y=chart_cols, title=f"{ticker} Closing Price & Indicators", labels={"value": "Price"})
                 st.plotly_chart(fig, use_container_width=True)
             else:
                 st.info("No valid data to plot for this ticker and timeframe.")
 
             # ---- RSI Chart ----
-            if "RSI" in data.columns and data["RSI"].notna().any():
+            if "RSI" in df.columns and df["RSI"].notna().any():
                 st.markdown("<h4>📉 RSI (Momentum)</h4>", unsafe_allow_html=True)
-                st.line_chart(data['RSI'])
+                st.line_chart(df['RSI'])
 
             # ---- MACD Chart ----
             if (
-                "MACD_12_26_9" in data.columns and
-                "MACDs_12_26_9" in data.columns and
-                data["MACD_12_26_9"].notna().any()
+                "MACD_12_26_9" in df.columns and
+                "MACDs_12_26_9" in df.columns and
+                df["MACD_12_26_9"].notna().any()
             ):
                 st.markdown("<h4>📈 MACD</h4>", unsafe_allow_html=True)
-                st.line_chart(data[["MACD_12_26_9", "MACDs_12_26_9"]])
+                st.line_chart(df[["MACD_12_26_9", "MACDs_12_26_9"]])
 
             # ---- ATR Chart ----
-            if "ATR" in data.columns and data["ATR"].notna().any():
+            if "ATR" in df.columns and df["ATR"].notna().any():
                 st.markdown("<h4>📊 ATR (Volatility)</h4>", unsafe_allow_html=True)
-                st.line_chart(data['ATR'])
+                st.line_chart(df['ATR'])
 
             # ---- Key Stats ----
             st.markdown("<h4>📋 Key Stats for this Period</h4>", unsafe_allow_html=True)
-            st.write(f"**Latest Close:** ${data['Close'].iloc[-1]:.2f}")
-            st.write(f"**Volume:** {data['Volume'].iloc[-1]:,.0f}")
-            st.write(f"**High (period):** ${data['High'].max():.2f}")
-            st.write(f"**Low (period):** ${data['Low'].min():.2f}")
-            st.write(f"**Total Trading Days:** {len(data)}")
+            latest_close = df[close_col].dropna().iloc[-1] if df[close_col].notna().any() else float('nan')
+            latest_vol = df[vol_col].dropna().iloc[-1] if vol_col in df.columns and df[vol_col].notna().any() else float('nan')
+            st.write(f"**Latest Close:** ${latest_close:.2f}")
+            st.write(f"**Volume:** {latest_vol:,.0f}")
+            st.write(f"**High (period):** ${df[high_col].max():.2f}" if high_col in df.columns else "")
+            st.write(f"**Low (period):** ${df[low_col].min():.2f}" if low_col in df.columns else "")
+            st.write(f"**Total Trading Days:** {len(df)}")
 
             st.download_button(
                 label="Download data as CSV",
-                data=data.to_csv().encode(),
+                data=df.to_csv().encode(),
                 file_name=f"{ticker}_{start}_{end}.csv",
                 mime="text/csv",
             )
 
             # ---- AI-Powered Trading Suggestion ----
             st.markdown("<h4>🤖 AI-Powered Trading Suggestion</h4>", unsafe_allow_html=True)
-            mean_close = data['Close'].mean()
-            latest_close = data['Close'].iloc[-1]
-            rsi_val = data['RSI'].iloc[-1] if "RSI" in data.columns and not data['RSI'].empty else None
-            macd_val = data['MACD_12_26_9'].iloc[-1] if "MACD_12_26_9" in data.columns and not data['MACD_12_26_9'].empty else None
-            bb_upper = data['BBU_5_2.0'].iloc[-1] if "BBU_5_2.0" in data.columns and not data['BBU_5_2.0'].empty else None
-            bb_lower = data['BBL_5_2.0'].iloc[-1] if "BBL_5_2.0" in data.columns and not data['BBL_5_2.0'].empty else None
+            mean_close = df[close_col].mean()
+            rsi_val = df['RSI'].dropna().iloc[-1] if "RSI" in df.columns and df['RSI'].notna().any() else None
+            macd_val = df['MACD_12_26_9'].dropna().iloc[-1] if "MACD_12_26_9" in df.columns and df['MACD_12_26_9'].notna().any() else None
+            bb_upper = df['BBU_5_2.0'].dropna().iloc[-1] if "BBU_5_2.0" in df.columns and df['BBU_5_2.0'].notna().any() else None
+            bb_lower = df['BBL_5_2.0'].dropna().iloc[-1] if "BBL_5_2.0" in df.columns and df['BBL_5_2.0'].notna().any() else None
 
             suggestion = []
             if latest_close > mean_close:
                 suggestion.append("The current price is **above** its average—bullish trend.")
-            else:
+            elif latest_close < mean_close:
                 suggestion.append("The current price is **below** its average—watch for reversals.")
 
             if rsi_val is not None and not pd.isna(rsi_val):
@@ -227,9 +236,6 @@ if st.button("Get Data & Analyze", key="getdata"):
 
             st.markdown(" ".join(suggestion))
             st.caption("(*These suggestions are rule-based and for educational purposes. Always research thoroughly before investing!*)")
-
-        else:
-            st.error("No data found. Please check the ticker or date range.")
 
 with st.expander("About QuantPilot"):
     st.markdown("""
