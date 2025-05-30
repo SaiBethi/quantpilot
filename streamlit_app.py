@@ -3,7 +3,6 @@ import yfinance as yf
 import pandas as pd
 import plotly.express as px
 
-# Optional: For technical indicators
 try:
     import pandas_ta as ta
     TA_INSTALLED = True
@@ -12,7 +11,6 @@ except ImportError:
 
 st.set_page_config(page_title="QuantPilot: All-in-One Dashboard", layout="wide")
 
-# ---- EB Garamond and style ----
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
@@ -52,7 +50,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ---- Title & Intro ----
 st.markdown("<h1 style='text-align:center;'>📈 QuantPilot: All-in-One Dashboard</h1>", unsafe_allow_html=True)
 st.markdown("""
 <div style='text-align:center; font-size:1.2rem; margin-bottom:1.5em;'>
@@ -92,7 +89,6 @@ with st.expander("② Customize: Technical Indicators", expanded=True):
         indicators = []
         st.info("Install `pandas_ta` for more technical indicators (pip install pandas_ta).")
 
-# ---- 3. Explanations Section ----
 st.markdown("<h2 style='margin-top:1.7em;'>③ Indicator Explanations</h2>", unsafe_allow_html=True)
 st.markdown("""
 <ul style='font-size:1.08em;'>
@@ -106,7 +102,6 @@ st.markdown("""
 </ul>
 """, unsafe_allow_html=True)
 
-# ---- 4. Analysis Section ----
 st.markdown("<h2 style='margin-top:2em;'>④ Stock Data & Analysis</h2>", unsafe_allow_html=True)
 if st.button("Get Data & Analyze", key="getdata"):
     for ticker in tickers:
@@ -141,15 +136,13 @@ if st.button("Get Data & Analyze", key="getdata"):
                 if "EMA100" in indicators:
                     data['EMA100'] = ta.ema(data['Close'], length=100)
             else:
-                # Minimal built-in indicators if pandas_ta is missing
                 data['MA20'] = data['Close'].rolling(window=20).mean()
                 data['MA50'] = data['Close'].rolling(window=50).mean()
 
-            # ---- Price Chart Section ----
             st.markdown("<h4>📊 Price Chart & Indicators</h4>", unsafe_allow_html=True)
             possible_cols = ["Close", "EMA20", "SMA50", "EMA100", "VWAP", "BBL_5_2.0", "BBU_5_2.0", "MA20", "MA50"]
             chart_cols = [col for col in possible_cols if col in data.columns and data[col].notna().any()]
-            if chart_cols:
+            if len(chart_cols) > 0:
                 fig = px.line(data, x=data.index, y=chart_cols, title=f"{ticker} Closing Price & Indicators", labels={"value": "Price"})
                 st.plotly_chart(fig, use_container_width=True)
             else:
@@ -161,7 +154,11 @@ if st.button("Get Data & Analyze", key="getdata"):
                 st.line_chart(data['RSI'])
 
             # ---- MACD Chart ----
-            if "MACD_12_26_9" in data.columns and "MACDs_12_26_9" in data.columns and data["MACD_12_26_9"].notna().any():
+            if (
+                "MACD_12_26_9" in data.columns and
+                "MACDs_12_26_9" in data.columns and
+                data["MACD_12_26_9"].notna().any()
+            ):
                 st.markdown("<h4>📈 MACD</h4>", unsafe_allow_html=True)
                 st.line_chart(data[["MACD_12_26_9", "MACDs_12_26_9"]])
 
@@ -185,7 +182,7 @@ if st.button("Get Data & Analyze", key="getdata"):
                 mime="text/csv",
             )
 
-            # ---- Simple "AI-Powered" Trading Suggestion ----
+            # ---- AI-Powered Trading Suggestion ----
             st.markdown("<h4>🤖 AI-Powered Trading Suggestion</h4>", unsafe_allow_html=True)
             mean_close = data['Close'].mean()
             latest_close = data['Close'].iloc[-1]
@@ -225,7 +222,6 @@ if st.button("Get Data & Analyze", key="getdata"):
         else:
             st.error("No data found. Please check the ticker or date range.")
 
-# ---- About Section ----
 with st.expander("About QuantPilot"):
     st.markdown("""
     <b>QuantPilot</b> empowers investors with:
