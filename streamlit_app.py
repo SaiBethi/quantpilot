@@ -11,10 +11,7 @@ try:
 except ImportError:
     TA_INSTALLED = False
 
-# The rest of your Streamlit code goes here...
-
-st.set_page_config(page_title="QuantPilot: All-in-One Dashboard", layout="wide")
-
+# CUSTOM STYLING
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
