@@ -11,51 +11,85 @@ try:
 except ImportError:
     TA_INSTALLED = False
 
-# CUSTOM STYLING
+# --- MODERN & MINIMAL STYLING ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
     html, body, [class*="css"], .stApp {
         font-family: 'EB Garamond', serif !important;
-        background: #f4f8fb !important;
+        background: linear-gradient(135deg, #e6eafc 0%, #f4f8fb 100%) !important;
     }
-    div[data-testid="stSidebar"] {
-        background: #f0f3f9;
-        font-family: 'EB Garamond', serif !important;
+    /* Hide sidebar completely */
+    [data-testid="stSidebar"], [data-testid="stSidebarContent"] {
+        display: none !important;
+    }
+    /* Remove sidebar gap on the left */
+    .main .block-container {
+        padding-left: 1.5rem !important;
     }
     .stButton>button, .stDownloadButton>button, .stSelectbox>div {
         font-family: 'EB Garamond', serif !important;
         font-weight: 600;
-        font-size: 1.1rem;
-        border-radius: 10px;
+        font-size: 1.13rem;
+        border-radius: 12px;
         background: #fff;
         color: #23272a;
-        border: 1.5px solid #e4eaf2;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+        border: 2px solid #e4eaf2;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.07);
         transition: background 0.16s, color 0.16s, box-shadow 0.18s;
-        margin-bottom: 0.5em;
+        margin-bottom: 0.6em;
+        padding: 0.5em 1.3em;
     }
     .stButton>button:hover, .stDownloadButton>button:hover {
-        background: #ebe5dc;
+        background: #efe7de;
         color: #111;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.13);
     }
     h1, h2, h3, h4, h5, h6, .stMarkdown {
         font-family: 'EB Garamond', serif !important;
+        font-weight: 600;
     }
     .block-container {
-        padding-top: 1.2rem;
-        padding-right: 2rem;
-        padding-left: 2rem;
+        padding-top: 1.3rem;
+        padding-right: 2.5rem;
+        padding-left: 2.5rem;
+        max-width: 920px;
+        margin: auto;
+    }
+    /* Make expanders look like cards */
+    [data-testid="stExpander"] > div {
+        border-radius: 18px !important;
+        box-shadow: 0 2px 14px rgba(80,80,120,0.09);
+        border: 1.5px solid #e5e1d7;
+        background: #fff;
+        margin-bottom: 1.4em;
+    }
+    [data-testid="stExpander"] label {
+        font-size: 1.18em;
+        font-weight: 500;
+        color: #2f3b5c;
+    }
+    /* Center all main headings */
+    h1, h2 {
+        text-align: center !important;
+        width: 100%;
+    }
+    /* Make plots float above cards */
+    .element-container:has(.plotly-chart) {
+        margin-bottom: 1.9em;
+        box-shadow: 0 4px 24px rgba(80,80,120,0.08);
+        border-radius: 18px;
+        background: #fff;
+        padding: 0.6em 1.1em 1.1em 1.1em;
     }
     </style>
 """, unsafe_allow_html=True)
 
-st.markdown("<h1 style='text-align:center;'>📈 QuantPilot: All-in-One Dashboard</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align:center;letter-spacing:0.01em;font-size:2.4rem;'>📈 QuantPilot: All-in-One Dashboard</h1>", unsafe_allow_html=True)
 st.markdown("""
-<div style='text-align:center; font-size:1.2rem; margin-bottom:1.5em;'>
+<div style='text-align:center; font-size:1.24rem; margin-bottom:2em; color:#3d4250;'>
     Level up your investing with <b>QuantPilot</b>: advanced analytics, interactive charts, and easy-to-understand insights.<br>
-    <span style='color:#666; font-size:1rem;'>
+    <span style='color:#666; font-size:1.06rem;'>
     Get clarity on your stocks—no matter your experience level.
     </span>
 </div>
@@ -90,7 +124,7 @@ with st.expander("② Customize: Technical Indicators", expanded=True):
         indicators = []
         st.info("Install `pandas_ta` for more technical indicators (pip install pandas_ta).")
 
-st.markdown("<h2 style='margin-top:1.7em;'>③ Indicator Explanations</h2>", unsafe_allow_html=True)
+st.markdown("<h2 style='margin-top:1.6em;'>③ Indicator Explanations</h2>", unsafe_allow_html=True)
 st.markdown("""
 <ul style='font-size:1.08em;'>
 <li><b>Bollinger Bands (BB Upper/Lower):</b> Show likely overbought (upper) and oversold (lower) price levels, based on volatility.</li>
@@ -115,7 +149,7 @@ if st.button("Get Data & Analyze", key="getdata"):
             data.columns = ["_".join([str(i) for i in col if i]) for col in data.columns.values]
 
         for ticker in tickers:
-            st.markdown(f"<h3 style='margin-top:1.5em; margin-bottom:0.4em;'>{ticker}</h3>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='margin-top:1.5em; margin-bottom:0.4em;color:#3d4250'>{ticker}</h3>", unsafe_allow_html=True)
             # Find columns for this ticker (e.g. Close_AAPL)
             close_col = f"Close_{ticker}" if f"Close_{ticker}" in data.columns else f"{ticker}_Close"
             high_col = f"High_{ticker}" if f"High_{ticker}" in data.columns else f"{ticker}_High"
@@ -154,7 +188,7 @@ if st.button("Get Data & Analyze", key="getdata"):
                 df['MA20'] = df[close_col].rolling(window=20).mean()
                 df['MA50'] = df[close_col].rolling(window=50).mean()
 
-            st.markdown("<h4>📊 Price Chart & Indicators</h4>", unsafe_allow_html=True)
+            st.markdown("<h4 style='color:#4360b6;'>📊 Price Chart & Indicators</h4>", unsafe_allow_html=True)
             possible_cols = [close_col, "EMA20", "SMA50", "EMA100", "VWAP", "BBL_5_2.0", "BBU_5_2.0", "MA20", "MA50"]
             chart_cols = []
             for col in possible_cols:
@@ -168,7 +202,7 @@ if st.button("Get Data & Analyze", key="getdata"):
 
             # ---- RSI Chart ----
             if "RSI" in df.columns and df["RSI"].notna().any():
-                st.markdown("<h4>📉 RSI (Momentum)</h4>", unsafe_allow_html=True)
+                st.markdown("<h4 style='color:#4360b6;'>📉 RSI (Momentum)</h4>", unsafe_allow_html=True)
                 st.line_chart(df['RSI'])
 
             # ---- MACD Chart ----
@@ -177,16 +211,16 @@ if st.button("Get Data & Analyze", key="getdata"):
                 "MACDs_12_26_9" in df.columns and
                 df["MACD_12_26_9"].notna().any()
             ):
-                st.markdown("<h4>📈 MACD</h4>", unsafe_allow_html=True)
+                st.markdown("<h4 style='color:#4360b6;'>📈 MACD</h4>", unsafe_allow_html=True)
                 st.line_chart(df[["MACD_12_26_9", "MACDs_12_26_9"]])
 
             # ---- ATR Chart ----
             if "ATR" in df.columns and df["ATR"].notna().any():
-                st.markdown("<h4>📊 ATR (Volatility)</h4>", unsafe_allow_html=True)
+                st.markdown("<h4 style='color:#4360b6;'>📊 ATR (Volatility)</h4>", unsafe_allow_html=True)
                 st.line_chart(df['ATR'])
 
             # ---- Key Stats ----
-            st.markdown("<h4>📋 Key Stats for this Period</h4>", unsafe_allow_html=True)
+            st.markdown("<h4 style='color:#4360b6;'>📋 Key Stats for this Period</h4>", unsafe_allow_html=True)
             latest_close = df[close_col].dropna().iloc[-1] if df[close_col].notna().any() else float('nan')
             latest_vol = df[vol_col].dropna().iloc[-1] if vol_col in df.columns and df[vol_col].notna().any() else float('nan')
             st.write(f"**Latest Close:** ${latest_close:.2f}")
@@ -203,7 +237,7 @@ if st.button("Get Data & Analyze", key="getdata"):
             )
 
             # ---- AI-Powered Trading Suggestion ----
-            st.markdown("<h4>🤖 AI-Powered Trading Suggestion</h4>", unsafe_allow_html=True)
+            st.markdown("<h4 style='color:#4360b6;'>🤖 AI-Powered Trading Suggestion</h4>", unsafe_allow_html=True)
             mean_close = df[close_col].mean()
             rsi_val = df['RSI'].dropna().iloc[-1] if "RSI" in df.columns and df['RSI'].notna().any() else None
             macd_val = df['MACD_12_26_9'].dropna().iloc[-1] if "MACD_12_26_9" in df.columns and df['MACD_12_26_9'].notna().any() else None
