@@ -4,6 +4,7 @@ st.set_page_config(page_title="QuantPilot: All-in-One Dashboard", layout="wide")
 import yfinance as yf
 import pandas as pd
 import plotly.graph_objects as go
+import numpy as np
 
 # --- CUSTOM STYLING ---
 st.markdown("""
@@ -55,7 +56,6 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ---- 1. User Inputs ----
 with st.expander("① Start Here: Select Tickers and Date Range", expanded=True):
     tickers = [
         t for t in st.text_input(
@@ -72,15 +72,16 @@ with st.expander("① Start Here: Select Tickers and Date Range", expanded=True)
         interval = st.selectbox("Interval", ["1d", "1wk", "1mo"], index=0)
     st.caption("💡 You can add more tickers separated by commas!")
 
-# ---- 2. Indicator Explanations ----
 st.markdown("<h2 style='margin-top:1.7em;'>② Indicator Explanations</h2>", unsafe_allow_html=True)
 st.markdown("""
 <ul style='font-size:1.08em;'>
 <li><b>Candlestick Chart:</b> Shows price open, high, low, and close for each period.</li>
-<li><b>MA20 & MA50:</b> Simple moving averages that smooth price and reveal trend direction. MA20 is short-term, MA50 is longer-term.</li>
-<li><b>EMA20 & EMA50:</b> Exponential moving averages; they react more quickly to price changes.</li>
+<li><b>Simple Moving Averages (MA20, MA50, MA100, MA200):</b> Averages of closing price over 20/50/100/200 periods. Show trend direction.</li>
+<li><b>Exponential Moving Averages (EMA20, EMA50, EMA100, EMA200):</b> Like SMAs but react faster to recent price changes.</li>
+<li><b>Daily % Change:</b> Shows daily momentum (positive = up, negative = down).</li>
+<li><b>Volatility (20-day Rolling Std):</b> Measures how much price moves up/down (higher = more volatile).</li>
 <li><b>Volume Bars:</b> Number of shares traded each period.</li>
-<li><b>Basic "AI" Suggestion:</b> Looks at price vs. averages to suggest bullish/bearish/neutral.</li>
+<li><b>AI Suggestion:</b> Considers price vs. averages, volatility, and momentum to give you a trading insight.</li>
 </ul>
 """, unsafe_allow_html=True)
 
@@ -106,11 +107,20 @@ if st.button("Get Data & Analyze", key="getdata"):
                 continue
 
             df = data[[c for c in [open_col, close_col, high_col, low_col, vol_col] if c in data.columns]].copy()
+
             # --- Moving Averages ---
             df['MA20'] = df[close_col].rolling(window=20).mean()
             df['MA50'] = df[close_col].rolling(window=50).mean()
+            df['MA100'] = df[close_col].rolling(window=100).mean()
+            df['MA200'] = df[close_col].rolling(window=200).mean()
             df['EMA20'] = df[close_col].ewm(span=20, adjust=False).mean()
             df['EMA50'] = df[close_col].ewm(span=50, adjust=False).mean()
+            df['EMA100'] = df[close_col].ewm(span=100, adjust=False).mean()
+            df['EMA200'] = df[close_col].ewm(span=200, adjust=False).mean()
+            # --- Daily % Change (Momentum) ---
+            df['Daily % Change'] = df[close_col].pct_change()*100
+            # --- Volatility (20-day rolling std) ---
+            df['Volatility (20d)'] = df[close_col].rolling(window=20).std()
 
             # --- Price Chart & Indicators ---
             st.markdown("<h4>📊 Price Chart & Indicators</h4>", unsafe_allow_html=True)
@@ -126,10 +136,22 @@ if st.button("Get Data & Analyze", key="getdata"):
                 x=df.index, y=df["MA50"], line=dict(color='orange', width=1), name="MA50"
             ))
             fig.add_trace(go.Scatter(
+                x=df.index, y=df["MA100"], line=dict(color='gray', width=1, dash="dot"), name="MA100"
+            ))
+            fig.add_trace(go.Scatter(
+                x=df.index, y=df["MA200"], line=dict(color='black', width=1, dash="dot"), name="MA200"
+            ))
+            fig.add_trace(go.Scatter(
                 x=df.index, y=df["EMA20"], line=dict(color='purple', width=1, dash='dot'), name="EMA20"
             ))
             fig.add_trace(go.Scatter(
                 x=df.index, y=df["EMA50"], line=dict(color='green', width=1, dash='dot'), name="EMA50"
+            ))
+            fig.add_trace(go.Scatter(
+                x=df.index, y=df["EMA100"], line=dict(color='magenta', width=1, dash='dot'), name="EMA100"
+            ))
+            fig.add_trace(go.Scatter(
+                x=df.index, y=df["EMA200"], line=dict(color='red', width=1, dash='dot'), name="EMA200"
             ))
             fig.update_layout(
                 title=f"{ticker} Price Chart",
@@ -145,6 +167,14 @@ if st.button("Get Data & Analyze", key="getdata"):
             if vol_col in df.columns:
                 st.bar_chart(df[vol_col], use_container_width=True)
 
+            # ---- Momentum Chart ----
+            st.markdown("<h4>⚡️ Daily % Change (Momentum)</h4>", unsafe_allow_html=True)
+            st.line_chart(df['Daily % Change'])
+
+            # ---- Volatility Chart ----
+            st.markdown("<h4>📈 Volatility (20d rolling std)</h4>", unsafe_allow_html=True)
+            st.line_chart(df['Volatility (20d)'])
+
             # ---- Key Stats ----
             st.markdown("<h4>📋 Key Stats for this Period</h4>", unsafe_allow_html=True)
             latest_close = df[close_col].dropna().iloc[-1] if df[close_col].notna().any() else float('nan')
@@ -154,6 +184,8 @@ if st.button("Get Data & Analyze", key="getdata"):
             st.write(f"**High (period):** ${df[high_col].max():.2f}" if high_col in df.columns else "")
             st.write(f"**Low (period):** ${df[low_col].min():.2f}" if low_col in df.columns else "")
             st.write(f"**Total Trading Days:** {len(df)}")
+            st.write(f"**Mean Volatility (20d):** {df['Volatility (20d)'].dropna().mean():.3f}")
+            st.write(f"**Mean Daily % Change:** {df['Daily % Change'].dropna().mean():.3f}%")
 
             st.download_button(
                 label="Download data as CSV",
@@ -162,25 +194,43 @@ if st.button("Get Data & Analyze", key="getdata"):
                 mime="text/csv",
             )
 
-            # ---- "AI" Trading Suggestion ----
+            # ---- AI-Powered Trading Suggestion ----
             st.markdown("<h4>🤖 AI-Powered Trading Suggestion</h4>", unsafe_allow_html=True)
-            mean_close = df[close_col].mean()
-
             suggestion = []
-            if latest_close > df["MA20"].dropna().iloc[-1]:
+            # Trend
+            if latest_close > df['MA20'].dropna().iloc[-1]:
                 suggestion.append("Price is above MA20: short-term trend is bullish.")
-            elif latest_close < df["MA20"].dropna().iloc[-1]:
+            elif latest_close < df['MA20'].dropna().iloc[-1]:
                 suggestion.append("Price is below MA20: short-term trend is cautious.")
 
-            if latest_close > df["MA50"].dropna().iloc[-1]:
-                suggestion.append("Price is above MA50: longer-term trend is bullish.")
-            elif latest_close < df["MA50"].dropna().iloc[-1]:
-                suggestion.append("Price is below MA50: longer-term trend is cautious.")
+            if latest_close > df['MA50'].dropna().iloc[-1]:
+                suggestion.append("Price is above MA50: medium-term trend is bullish.")
+            elif latest_close < df['MA50'].dropna().iloc[-1]:
+                suggestion.append("Price is below MA50: medium-term trend is cautious.")
 
-            if abs(latest_close - mean_close) / mean_close < 0.02:
-                suggestion.append("Price is close to its recent average—possible consolidation.")
+            if latest_close > df['MA200'].dropna().iloc[-1]:
+                suggestion.append("Price is above MA200: long-term trend is bullish.")
+            elif latest_close < df['MA200'].dropna().iloc[-1]:
+                suggestion.append("Price is below MA200: long-term trend is cautious.")
 
-            st.markdown(" ".join(suggestion) if suggestion else "No strong trend signals detected.")
+            # Volatility
+            recent_volatility = df['Volatility (20d)'].dropna().iloc[-1] if df['Volatility (20d)'].notna().any() else 0
+            avg_volatility = df['Volatility (20d)'].dropna().mean() if df['Volatility (20d)'].notna().any() else 0
+            if recent_volatility > 1.2 * avg_volatility:
+                suggestion.append("Volatility is high: expect larger price swings.")
+            elif recent_volatility < 0.8 * avg_volatility:
+                suggestion.append("Volatility is low: market is calmer.")
+
+            # Momentum
+            latest_mom = df['Daily % Change'].dropna().iloc[-1] if df['Daily % Change'].notna().any() else 0
+            if latest_mom > 1:
+                suggestion.append("Momentum is positive: recent price increase.")
+            elif latest_mom < -1:
+                suggestion.append("Momentum is negative: recent price decrease.")
+            else:
+                suggestion.append("Momentum is neutral.")
+
+            st.markdown(" ".join(suggestion))
             st.caption("(*These suggestions are rule-based and for educational purposes. Always research thoroughly before investing!*)")
 
 with st.expander("About QuantPilot"):
@@ -188,6 +238,7 @@ with st.expander("About QuantPilot"):
     <b>QuantPilot</b> empowers investors with:
     - Beautiful, interactive candlestick charts
     - Moving averages (SMA & EMA)
+    - Volatility and momentum insights
     - Volume data
     - Downloadable CSVs
     - Clear, plain-English insights
