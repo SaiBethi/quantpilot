@@ -1,5 +1,9 @@
 import streamlit as st
-st.set_page_config(page_title="QuantPilot: All-in-One Dashboard", layout="wide")
+st.set_page_config(
+    page_title="QuantPilot: All-in-One Dashboard",
+    layout="wide",
+    page_icon="🚀"
+)
 
 import yfinance as yf
 import pandas as pd
@@ -11,7 +15,7 @@ try:
 except ImportError:
     TA_INSTALLED = False
 
-# --- MODERN & MINIMAL STYLING ---
+# --- MODERN & MINIMAL STYLING + FOOTER ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
@@ -23,7 +27,6 @@ st.markdown("""
     [data-testid="stSidebar"], [data-testid="stSidebarContent"] {
         display: none !important;
     }
-    /* Remove sidebar gap on the left */
     .main .block-container {
         padding-left: 1.5rem !important;
     }
@@ -56,7 +59,6 @@ st.markdown("""
         max-width: 920px;
         margin: auto;
     }
-    /* Make expanders look like cards */
     [data-testid="stExpander"] > div {
         border-radius: 18px !important;
         box-shadow: 0 2px 14px rgba(80,80,120,0.09);
@@ -69,12 +71,10 @@ st.markdown("""
         font-weight: 500;
         color: #2f3b5c;
     }
-    /* Center all main headings */
     h1, h2 {
         text-align: center !important;
         width: 100%;
     }
-    /* Make plots float above cards */
     .element-container:has(.plotly-chart) {
         margin-bottom: 1.9em;
         box-shadow: 0 4px 24px rgba(80,80,120,0.08);
@@ -82,7 +82,32 @@ st.markdown("""
         background: #fff;
         padding: 0.6em 1.1em 1.1em 1.1em;
     }
+    /* Footer bar */
+    #custom-footer {
+        width: 100%;
+        margin-top: 2.5em;
+        padding: 1.1em 0 0.2em 0;
+        text-align: center;
+        font-size: 1.03em;
+        color: #999;
+        letter-spacing: 0.01em;
+    }
+    /* Hide Streamlit's default footer */
+    footer {visibility: hidden;}
     </style>
+""", unsafe_allow_html=True)
+
+# Welcome info alert
+st.info("🚀 Welcome to QuantPilot! Start by entering your favorite tickers below 👇")
+
+# Social share button
+st.markdown("""
+<div style='text-align:center;margin-bottom:1.1em;'>
+    <a href="https://twitter.com/intent/tweet?text=Check%20out%20QuantPilot%20stock%20dashboard!%20https://your-app-url.com" target="_blank">
+        <img src="https://img.shields.io/badge/Tweet-QuantPilot-blue?logo=twitter" style="height:28px;vertical-align:middle;margin-right:7px;">
+    </a>
+    <a href="mailto:your@email.com" target="_blank" style="color:#4360b6;font-size:1.15em;text-decoration:none;">Contact</a>
+</div>
 """, unsafe_allow_html=True)
 
 st.markdown("<h1 style='text-align:center;letter-spacing:0.01em;font-size:2.4rem;'>📈 QuantPilot: All-in-One Dashboard</h1>", unsafe_allow_html=True)
@@ -99,17 +124,18 @@ st.markdown("""
 with st.expander("① Start Here: Select Tickers and Date Range", expanded=True):
     tickers = [
         t for t in st.text_input(
-            "Enter one or more stock tickers (comma separated, e.g., AAPL, TSLA, MSFT):",
-            value="AAPL, TSLA"
+            "Enter tickers (e.g. AAPL, TSLA, MSFT)",
+            value="AAPL, TSLA",
+            help="Separated by commas, e.g., AAPL, TSLA"
         ).upper().replace(" ", "").split(",") if t
     ]
     col1, col2, col3 = st.columns([2, 2, 2])
     with col1:
-        start = st.date_input("Start date", pd.to_datetime("2023-01-01"))
+        start = st.date_input("Start date", pd.to_datetime("2023-01-01"), help="Pick your analysis start date")
     with col2:
-        end = st.date_input("End date", pd.to_datetime("today"))
+        end = st.date_input("End date", pd.to_datetime("today"), help="Pick your analysis end date")
     with col3:
-        interval = st.selectbox("Interval", ["1d", "1wk", "1mo"], index=0)
+        interval = st.selectbox("Interval", ["1d", "1wk", "1mo"], index=0, help="Choose data granularity (daily/weekly/monthly)")
     st.caption("💡 You can add more tickers separated by commas!")
 
 # ---- 2. Indicator Selection ----
@@ -118,7 +144,8 @@ with st.expander("② Customize: Technical Indicators", expanded=True):
         indicators = st.multiselect(
             "Choose which indicators to add to your charts:",
             ["RSI", "MACD", "EMA20", "SMA50", "BB", "VWAP", "ATR", "EMA100"],
-            default=["RSI", "BB", "EMA20", "SMA50"]
+            default=["RSI", "BB", "EMA20", "SMA50"],
+            help="Select technical indicators for your analysis"
         )
     else:
         indicators = []
@@ -139,138 +166,136 @@ st.markdown("""
 
 st.markdown("<h2 style='margin-top:2em;'>④ Stock Data & Analysis</h2>", unsafe_allow_html=True)
 if st.button("Get Data & Analyze", key="getdata"):
-    # Download all tickers as one DataFrame (MultiIndex columns)
-    data = yf.download(tickers, start=start, end=end, interval=interval, group_by='ticker', auto_adjust=True)
-    if data.empty:
-        st.error("No data found for these tickers in the selected date range.")
-    else:
-        # FLATTEN MultiIndex columns if present
-        if isinstance(data.columns, pd.MultiIndex):
-            data.columns = ["_".join([str(i) for i in col if i]) for col in data.columns.values]
+    with st.spinner("Fetching stock data..."):
+        data = yf.download(tickers, start=start, end=end, interval=interval, group_by='ticker', auto_adjust=True)
+        if data.empty:
+            st.error("No data found for these tickers in the selected date range.")
+        else:
+            st.success("Data loaded!")
+            st.balloons()
+            if isinstance(data.columns, pd.MultiIndex):
+                data.columns = ["_".join([str(i) for i in col if i]) for col in data.columns.values]
 
-        for ticker in tickers:
-            st.markdown(f"<h3 style='margin-top:1.5em; margin-bottom:0.4em;color:#3d4250'>{ticker}</h3>", unsafe_allow_html=True)
-            # Find columns for this ticker (e.g. Close_AAPL)
-            close_col = f"Close_{ticker}" if f"Close_{ticker}" in data.columns else f"{ticker}_Close"
-            high_col = f"High_{ticker}" if f"High_{ticker}" in data.columns else f"{ticker}_High"
-            low_col = f"Low_{ticker}" if f"Low_{ticker}" in data.columns else f"{ticker}_Low"
-            vol_col = f"Volume_{ticker}" if f"Volume_{ticker}" in data.columns else f"{ticker}_Volume"
+            for ticker in tickers:
+                st.markdown(f"<h3 style='margin-top:1.5em; margin-bottom:0.4em;color:#3d4250'>{ticker}  <span style='font-size:0.82em;font-weight:400'>[Yahoo Finance](https://finance.yahoo.com/quote/{ticker}) | [TradingView](https://www.tradingview.com/symbols/{ticker})</span></h3>", unsafe_allow_html=True)
+                close_col = f"Close_{ticker}" if f"Close_{ticker}" in data.columns else f"{ticker}_Close"
+                high_col = f"High_{ticker}" if f"High_{ticker}" in data.columns else f"{ticker}_High"
+                low_col = f"Low_{ticker}" if f"Low_{ticker}" in data.columns else f"{ticker}_Low"
+                vol_col = f"Volume_{ticker}" if f"Volume_{ticker}" in data.columns else f"{ticker}_Volume"
 
-            # If ticker not present, skip
-            if close_col not in data.columns:
-                st.warning(f"No data for {ticker}.")
-                continue
+                if close_col not in data.columns:
+                    st.warning(f"No data for {ticker}.")
+                    continue
 
-            # Calculate indicators
-            df = data[[c for c in [close_col, high_col, low_col, vol_col] if c in data.columns]].copy()
-            if TA_INSTALLED:
-                if "RSI" in indicators:
-                    df['RSI'] = ta.rsi(df[close_col], length=14)
-                if "EMA20" in indicators:
-                    df['EMA20'] = ta.ema(df[close_col], length=20)
-                if "SMA50" in indicators:
-                    df['SMA50'] = ta.sma(df[close_col], length=50)
-                if "MACD" in indicators:
-                    macd = ta.macd(df[close_col])
-                    for c in macd.columns:
-                        df[c] = macd[c]
-                if "BB" in indicators:
-                    bb = ta.bbands(df[close_col])
-                    for c in bb.columns:
-                        df[c] = bb[c]
-                if "VWAP" in indicators and all(x in df.columns for x in [high_col, low_col, close_col, vol_col]):
-                    df['VWAP'] = ta.vwap(df[high_col], df[low_col], df[close_col], df[vol_col])
-                if "ATR" in indicators and all(x in df.columns for x in [high_col, low_col, close_col]):
-                    df['ATR'] = ta.atr(df[high_col], df[low_col], df[close_col])
-                if "EMA100" in indicators:
-                    df['EMA100'] = ta.ema(df[close_col], length=100)
-            else:
-                df['MA20'] = df[close_col].rolling(window=20).mean()
-                df['MA50'] = df[close_col].rolling(window=50).mean()
-
-            st.markdown("<h4 style='color:#4360b6;'>📊 Price Chart & Indicators</h4>", unsafe_allow_html=True)
-            possible_cols = [close_col, "EMA20", "SMA50", "EMA100", "VWAP", "BBL_5_2.0", "BBU_5_2.0", "MA20", "MA50"]
-            chart_cols = []
-            for col in possible_cols:
-                if col in df.columns and isinstance(df[col], pd.Series) and df[col].notna().any():
-                    chart_cols.append(col)
-            if len(chart_cols) > 0:
-                fig = px.line(df, x=df.index, y=chart_cols, title=f"{ticker} Closing Price & Indicators", labels={"value": "Price"})
-                st.plotly_chart(fig, use_container_width=True)
-            else:
-                st.info("No valid data to plot for this ticker and timeframe.")
-
-            # ---- RSI Chart ----
-            if "RSI" in df.columns and df["RSI"].notna().any():
-                st.markdown("<h4 style='color:#4360b6;'>📉 RSI (Momentum)</h4>", unsafe_allow_html=True)
-                st.line_chart(df['RSI'])
-
-            # ---- MACD Chart ----
-            if (
-                "MACD_12_26_9" in df.columns and
-                "MACDs_12_26_9" in df.columns and
-                df["MACD_12_26_9"].notna().any()
-            ):
-                st.markdown("<h4 style='color:#4360b6;'>📈 MACD</h4>", unsafe_allow_html=True)
-                st.line_chart(df[["MACD_12_26_9", "MACDs_12_26_9"]])
-
-            # ---- ATR Chart ----
-            if "ATR" in df.columns and df["ATR"].notna().any():
-                st.markdown("<h4 style='color:#4360b6;'>📊 ATR (Volatility)</h4>", unsafe_allow_html=True)
-                st.line_chart(df['ATR'])
-
-            # ---- Key Stats ----
-            st.markdown("<h4 style='color:#4360b6;'>📋 Key Stats for this Period</h4>", unsafe_allow_html=True)
-            latest_close = df[close_col].dropna().iloc[-1] if df[close_col].notna().any() else float('nan')
-            latest_vol = df[vol_col].dropna().iloc[-1] if vol_col in df.columns and df[vol_col].notna().any() else float('nan')
-            st.write(f"**Latest Close:** ${latest_close:.2f}")
-            st.write(f"**Volume:** {latest_vol:,.0f}")
-            st.write(f"**High (period):** ${df[high_col].max():.2f}" if high_col in df.columns else "")
-            st.write(f"**Low (period):** ${df[low_col].min():.2f}" if low_col in df.columns else "")
-            st.write(f"**Total Trading Days:** {len(df)}")
-
-            st.download_button(
-                label="Download data as CSV",
-                data=df.to_csv().encode(),
-                file_name=f"{ticker}_{start}_{end}.csv",
-                mime="text/csv",
-            )
-
-            # ---- AI-Powered Trading Suggestion ----
-            st.markdown("<h4 style='color:#4360b6;'>🤖 AI-Powered Trading Suggestion</h4>", unsafe_allow_html=True)
-            mean_close = df[close_col].mean()
-            rsi_val = df['RSI'].dropna().iloc[-1] if "RSI" in df.columns and df['RSI'].notna().any() else None
-            macd_val = df['MACD_12_26_9'].dropna().iloc[-1] if "MACD_12_26_9" in df.columns and df['MACD_12_26_9'].notna().any() else None
-            bb_upper = df['BBU_5_2.0'].dropna().iloc[-1] if "BBU_5_2.0" in df.columns and df['BBU_5_2.0'].notna().any() else None
-            bb_lower = df['BBL_5_2.0'].dropna().iloc[-1] if "BBL_5_2.0" in df.columns and df['BBL_5_2.0'].notna().any() else None
-
-            suggestion = []
-            if latest_close > mean_close:
-                suggestion.append("The current price is **above** its average—bullish trend.")
-            elif latest_close < mean_close:
-                suggestion.append("The current price is **below** its average—watch for reversals.")
-
-            if rsi_val is not None and not pd.isna(rsi_val):
-                if rsi_val > 70:
-                    suggestion.append("RSI suggests the stock is **overbought**. Caution: may pull back soon.")
-                elif rsi_val < 30:
-                    suggestion.append("RSI suggests the stock is **oversold**. There could be a rebound opportunity.")
+                df = data[[c for c in [close_col, high_col, low_col, vol_col] if c in data.columns]].copy()
+                if TA_INSTALLED:
+                    if "RSI" in indicators:
+                        df['RSI'] = ta.rsi(df[close_col], length=14)
+                    if "EMA20" in indicators:
+                        df['EMA20'] = ta.ema(df[close_col], length=20)
+                    if "SMA50" in indicators:
+                        df['SMA50'] = ta.sma(df[close_col], length=50)
+                    if "MACD" in indicators:
+                        macd = ta.macd(df[close_col])
+                        for c in macd.columns:
+                            df[c] = macd[c]
+                    if "BB" in indicators:
+                        bb = ta.bbands(df[close_col])
+                        for c in bb.columns:
+                            df[c] = bb[c]
+                    if "VWAP" in indicators and all(x in df.columns for x in [high_col, low_col, close_col, vol_col]):
+                        df['VWAP'] = ta.vwap(df[high_col], df[low_col], df[close_col], df[vol_col])
+                    if "ATR" in indicators and all(x in df.columns for x in [high_col, low_col, close_col]):
+                        df['ATR'] = ta.atr(df[high_col], df[low_col], df[close_col])
+                    if "EMA100" in indicators:
+                        df['EMA100'] = ta.ema(df[close_col], length=100)
                 else:
-                    suggestion.append("RSI is in a neutral range.")
+                    df['MA20'] = df[close_col].rolling(window=20).mean()
+                    df['MA50'] = df[close_col].rolling(window=50).mean()
 
-            if macd_val is not None and not pd.isna(macd_val):
-                if macd_val > 0:
-                    suggestion.append("MACD is positive: momentum is to the upside.")
+                st.markdown("<h4 style='color:#4360b6;'>📊 Price Chart & Indicators</h4>", unsafe_allow_html=True)
+                possible_cols = [close_col, "EMA20", "SMA50", "EMA100", "VWAP", "BBL_5_2.0", "BBU_5_2.0", "MA20", "MA50"]
+                chart_cols = []
+                for col in possible_cols:
+                    if col in df.columns and isinstance(df[col], pd.Series) and df[col].notna().any():
+                        chart_cols.append(col)
+                if len(chart_cols) > 0:
+                    fig = px.line(df, x=df.index, y=chart_cols, title=f"{ticker} Closing Price & Indicators", labels={"value": "Price"})
+                    st.plotly_chart(fig, use_container_width=True)
                 else:
-                    suggestion.append("MACD is negative: momentum leans bearish.")
+                    st.info("No valid data to plot for this ticker and timeframe.")
 
-            if bb_upper is not None and not pd.isna(bb_upper) and latest_close >= bb_upper:
-                suggestion.append("Price is touching the **upper Bollinger Band** (potential overbought).")
-            if bb_lower is not None and not pd.isna(bb_lower) and latest_close <= bb_lower:
-                suggestion.append("Price is touching the **lower Bollinger Band** (potential oversold).")
+                # ---- RSI Chart ----
+                if "RSI" in df.columns and df["RSI"].notna().any():
+                    st.markdown("<h4 style='color:#4360b6;'>📉 RSI (Momentum)</h4>", unsafe_allow_html=True)
+                    st.line_chart(df['RSI'])
 
-            st.markdown(" ".join(suggestion))
-            st.caption("(*These suggestions are rule-based and for educational purposes. Always research thoroughly before investing!*)")
+                # ---- MACD Chart ----
+                if (
+                    "MACD_12_26_9" in df.columns and
+                    "MACDs_12_26_9" in df.columns and
+                    df["MACD_12_26_9"].notna().any()
+                ):
+                    st.markdown("<h4 style='color:#4360b6;'>📈 MACD</h4>", unsafe_allow_html=True)
+                    st.line_chart(df[["MACD_12_26_9", "MACDs_12_26_9"]])
+
+                # ---- ATR Chart ----
+                if "ATR" in df.columns and df["ATR"].notna().any():
+                    st.markdown("<h4 style='color:#4360b6;'>📊 ATR (Volatility)</h4>", unsafe_allow_html=True)
+                    st.line_chart(df['ATR'])
+
+                # ---- Key Stats ----
+                st.markdown("<h4 style='color:#4360b6;'>📋 Key Stats for this Period</h4>", unsafe_allow_html=True)
+                latest_close = df[close_col].dropna().iloc[-1] if df[close_col].notna().any() else float('nan')
+                latest_vol = df[vol_col].dropna().iloc[-1] if vol_col in df.columns and df[vol_col].notna().any() else float('nan')
+                st.write(f"**Latest Close:** ${latest_close:.2f}")
+                st.write(f"**Volume:** {latest_vol:,.0f}")
+                st.write(f"**High (period):** ${df[high_col].max():.2f}" if high_col in df.columns else "")
+                st.write(f"**Low (period):** ${df[low_col].min():.2f}" if low_col in df.columns else "")
+                st.write(f"**Total Trading Days:** {len(df)}")
+
+                st.download_button(
+                    label="Download data as CSV",
+                    data=df.to_csv().encode(),
+                    file_name=f"{ticker}_{start}_{end}.csv",
+                    mime="text/csv",
+                )
+
+                # ---- AI-Powered Trading Suggestion ----
+                st.markdown("<h4 style='color:#4360b6;'>🤖 AI-Powered Trading Suggestion</h4>", unsafe_allow_html=True)
+                mean_close = df[close_col].mean()
+                rsi_val = df['RSI'].dropna().iloc[-1] if "RSI" in df.columns and df['RSI'].notna().any() else None
+                macd_val = df['MACD_12_26_9'].dropna().iloc[-1] if "MACD_12_26_9" in df.columns and df['MACD_12_26_9'].notna().any() else None
+                bb_upper = df['BBU_5_2.0'].dropna().iloc[-1] if "BBU_5_2.0" in df.columns and df['BBU_5_2.0'].notna().any() else None
+                bb_lower = df['BBL_5_2.0'].dropna().iloc[-1] if "BBL_5_2.0" in df.columns and df['BBL_5_2.0'].notna().any() else None
+
+                suggestion = []
+                if latest_close > mean_close:
+                    suggestion.append("The current price is **above** its average—bullish trend.")
+                elif latest_close < mean_close:
+                    suggestion.append("The current price is **below** its average—watch for reversals.")
+
+                if rsi_val is not None and not pd.isna(rsi_val):
+                    if rsi_val > 70:
+                        suggestion.append("RSI suggests the stock is **overbought**. Caution: may pull back soon.")
+                    elif rsi_val < 30:
+                        suggestion.append("RSI suggests the stock is **oversold**. There could be a rebound opportunity.")
+                    else:
+                        suggestion.append("RSI is in a neutral range.")
+
+                if macd_val is not None and not pd.isna(macd_val):
+                    if macd_val > 0:
+                        suggestion.append("MACD is positive: momentum is to the upside.")
+                    else:
+                        suggestion.append("MACD is negative: momentum leans bearish.")
+
+                if bb_upper is not None and not pd.isna(bb_upper) and latest_close >= bb_upper:
+                    suggestion.append("Price is touching the **upper Bollinger Band** (potential overbought).")
+                if bb_lower is not None and not pd.isna(bb_lower) and latest_close <= bb_lower:
+                    suggestion.append("Price is touching the **lower Bollinger Band** (potential oversold).")
+
+                st.markdown(" ".join(suggestion))
+                st.caption("(*These suggestions are rule-based and for educational purposes. Always research thoroughly before investing!*)")
 
 with st.expander("About QuantPilot"):
     st.markdown("""
@@ -286,3 +311,14 @@ with st.expander("About QuantPilot"):
         &copy; 2025 QuantPilot. All rights reserved.
     </div>
     """, unsafe_allow_html=True)
+
+# --- CUSTOM FOOTER ---
+st.markdown("""
+<div id="custom-footer">
+    🚀 QuantPilot by SaiBethi &middot; <a href="mailto:your@email.com">Contact</a><br>
+    <span style="font-size:0.98em;color:#bbb;">Share: 
+    <a href="https://twitter.com/intent/tweet?text=Check%20out%20QuantPilot%20stock%20dashboard!%20https://your-app-url.com" target="_blank">Twitter</a></span>
+    <br>
+    <span style="font-size:0.96em;color:#bbb;">Tip: Use the ☰ menu above to toggle light/dark mode!</span>
+</div>
+""", unsafe_allow_html=True)
