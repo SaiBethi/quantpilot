@@ -6,16 +6,18 @@ import numpy as np
 
 st.set_page_config(page_title="QuantPilot: All-in-One Dashboard", layout="wide")
 
-# --- EL Garamond & Enhanced UI ---
+# --- True Dark Mode: Dark background, all text light/white (for Mac and all platforms) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
     html, body, [class*="css"], .stApp {
         font-family: 'EB Garamond', serif !important;
-        background: #f8f6f1 !important;
+        background: #171a1c !important;
+        color: #f9fafb !important;
     }
     div[data-testid="stSidebar"], .stSidebar {
-        background: #f2ede6;
+        background: #202326 !important;
+        color: #f9fafb !important;
         font-family: 'EB Garamond', serif !important;
     }
     .stButton>button, .stDownloadButton>button, .stSelectbox>div, .stTextInput>div>input, .stDateInput>div>input {
@@ -23,50 +25,53 @@ st.markdown("""
         font-weight: 600;
         font-size: 1.08rem !important;
         border-radius: 10px;
-        background: #fff;
-        color: #23272a;
-        border: 1.5px solid #e4eaf2;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.08);
-        transition: background 0.16s, color 0.16s, box-shadow 0.18s;
+        background: #22252a !important;
+        color: #f9fafb !important;
+        border: 1.5px solid #333;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.22);
         margin-bottom: 0.5em;
     }
     .stButton>button:hover, .stDownloadButton>button:hover {
-        background: #ebe5dc;
-        color: #111;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        background: #232830 !important;
+        color: #fff !important;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.34);
     }
     h1, h2, h3, h4, h5, h6 {
         font-family: 'EB Garamond', serif !important;
         font-weight: 700 !important;
         letter-spacing: 0.01em;
+        color: #f9fafb !important;
     }
     .stMarkdown, .indicator-card, .ai-suggestion, .stat-table {
         font-family: 'EB Garamond', serif !important;
+        color: #f9fafb !important;
     }
     .block-container {
         padding-top: 1.2rem;
         padding-right: 2rem;
         padding-left: 2rem;
+        color: #f9fafb !important;
     }
     .indicator-card {
-        background: #fff6ef;
+        background: #23252a !important;
         border-radius: 1em;
         padding: 1.1em 1.5em;
         margin: 0.7em 0 1.1em 0;
-        box-shadow: 0 2px 8px rgba(200,180,140,0.07);
-        border: 1.5px solid #e7dbc9;
+        box-shadow: 0 2px 8px rgba(30,30,30,0.22);
+        border: 1.5px solid #333;
         font-size: 1.13em;
+        color: #f9fafb !important;
     }
     .ai-suggestion {
-        background: #f6f1e7;
+        background: #1c1f23 !important;
         border-radius: 1em;
         padding: 1em 1.5em;
         margin: 0.7em 0 1.3em 0;
-        box-shadow: 0 2px 8px rgba(190,170,130,0.09);
-        border: 1.5px solid #e7dbc9;
+        box-shadow: 0 2px 8px rgba(25,25,25,0.28);
+        border: 1.5px solid #333;
         font-size: 1.13em;
         font-weight: 500;
-        color: #5f4100;
+        color: #f9fafb !important;
     }
     .section-header {
         font-size: 1.75em !important;
@@ -74,7 +79,7 @@ st.markdown("""
         margin-bottom: 0.6em !important;
         font-family: 'EB Garamond', serif !important;
         font-weight: 700 !important;
-        color: #543600;
+        color: #f9fafb !important;
         letter-spacing: 0.01em;
     }
     .stat-table {
@@ -82,6 +87,7 @@ st.markdown("""
         border-collapse: collapse;
         margin: 0.7em 0 1.3em 0;
         font-size: 1.13em;
+        color: #f9fafb !important;
     }
     .stat-table th, .stat-table td {
         border: none;
@@ -89,23 +95,33 @@ st.markdown("""
         padding: 0.37em 1.3em 0.37em 0;
         vertical-align: middle;
         font-family: 'EB Garamond', serif !important;
+        color: #f9fafb !important;
     }
     .stat-table th {
-        color: #805400;
+        color: #ffe17a !important;
         font-weight: 700;
         background: none;
     }
     .stat-table td {
-        color: #39322a;
+        color: #f9fafb !important;
+    }
+    /* Streamlit selectbox dropdown and popups */
+    .css-1wa3eu0, .css-1n76uvr {
+        background-color: #23252a !important;
+        color: #f9fafb !important;
+    }
+    label, .stRadio, .stCheckbox {
+        color: #f9fafb !important;
+        font-family: 'EB Garamond', serif !important;
     }
     </style>
 """, unsafe_allow_html=True)
 
 st.markdown("<h1 style='text-align:center;'>📈 QuantPilot: All-in-One Dashboard</h1>", unsafe_allow_html=True)
 st.markdown("""
-<div style='text-align:center; font-size:1.28rem; margin-bottom:1.6em; font-family:EB Garamond,serif;'>
+<div style='text-align:center; font-size:1.28rem; margin-bottom:1.6em; font-family:EB Garamond,serif; color:#f9fafb;'>
     Level up your investing with <b>QuantPilot</b>: analytics, interactive charts, and easy-to-understand insights.<br>
-    <span style='color:#7c6f5c; font-size:1.09rem;'>
+    <span style='color:#ffe17a; font-size:1.09rem;'>
     Get clarity on your stocks—no matter your experience level.
     </span>
 </div>
@@ -116,7 +132,7 @@ if "data_loaded" not in st.session_state:
 
 with st.expander("① Start Here: Select Tickers and Date Range", expanded=True):
     st.markdown(
-        "<div style='font-size:1.08em; color:#6e5a33; font-family:EB Garamond,serif;'>"
+        "<div style='font-size:1.08em; color:#ffe17a; font-family:EB Garamond,serif;'>"
         "Enter tickers, pick your date range, and press <b>Get Data & Analyze</b>."
         "</div>",
         unsafe_allow_html=True
@@ -169,7 +185,7 @@ if st.session_state["data_loaded"]:
             data.columns = ["_".join([str(i) for i in col if i]) for col in data.columns.values]
         for ticker in tickers:
             st.markdown(
-                f"<h3 style='margin-top:1.5em; margin-bottom:0.4em; font-family:EB Garamond,serif; color:#543600;'>{ticker}</h3>",
+                f"<h3 style='margin-top:1.5em; margin-bottom:0.4em; font-family:EB Garamond,serif; color:#ffe17a;'>{ticker}</h3>",
                 unsafe_allow_html=True
             )
             close_col = f"Close_{ticker}" if f"Close_{ticker}" in data.columns else f"{ticker}_Close"
@@ -205,35 +221,36 @@ if st.session_state["data_loaded"]:
                 name='Candlestick'
             ))
             fig.add_trace(go.Scatter(
-                x=df.index, y=df["MA20"], line=dict(color='blue', width=1), name="MA20"
+                x=df.index, y=df["MA20"], line=dict(color='#4da6ff', width=1), name="MA20"
             ))
             fig.add_trace(go.Scatter(
-                x=df.index, y=df["MA50"], line=dict(color='orange', width=1), name="MA50"
+                x=df.index, y=df["MA50"], line=dict(color='#ffe17a', width=1), name="MA50"
             ))
             fig.add_trace(go.Scatter(
-                x=df.index, y=df["MA100"], line=dict(color='#999', width=1, dash="dot"), name="MA100"
+                x=df.index, y=df["MA100"], line=dict(color='#bbb', width=1, dash="dot"), name="MA100"
             ))
             fig.add_trace(go.Scatter(
-                x=df.index, y=df["MA200"], line=dict(color='black', width=1, dash="dot"), name="MA200"
+                x=df.index, y=df["MA200"], line=dict(color='#fff', width=1, dash="dot"), name="MA200"
             ))
             fig.add_trace(go.Scatter(
-                x=df.index, y=df["EMA20"], line=dict(color='purple', width=1, dash='dot'), name="EMA20"
+                x=df.index, y=df["EMA20"], line=dict(color='#bb7aff', width=1, dash='dot'), name="EMA20"
             ))
             fig.add_trace(go.Scatter(
-                x=df.index, y=df["EMA50"], line=dict(color='green', width=1, dash='dot'), name="EMA50"
+                x=df.index, y=df["EMA50"], line=dict(color='#7affc9', width=1, dash='dot'), name="EMA50"
             ))
             fig.add_trace(go.Scatter(
-                x=df.index, y=df["EMA100"], line=dict(color='magenta', width=1, dash='dot'), name="EMA100"
+                x=df.index, y=df["EMA100"], line=dict(color='#ff7aaf', width=1, dash='dot'), name="EMA100"
             ))
             fig.add_trace(go.Scatter(
-                x=df.index, y=df["EMA200"], line=dict(color='red', width=1, dash='dot'), name="EMA200"
+                x=df.index, y=df["EMA200"], line=dict(color='#ff7a7a', width=1, dash='dot'), name="EMA200"
             ))
             fig.update_layout(
                 title=f"{ticker} Price Chart",
                 yaxis_title="Price",
                 xaxis_title="Date",
                 xaxis_rangeslider_visible=False,
-                template="plotly_white",
+                template="plotly_dark",
+                font=dict(family="EB Garamond,serif", color="#f9fafb"),
                 legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
             )
             st.plotly_chart(fig, use_container_width=True)
@@ -327,9 +344,9 @@ if st.session_state["data_loaded"]:
                 safe_pct = 0.1
                 risky_pct = 0.2
 
-            verdict_color = {"BUY": "#189c3a", "SELL": "#c12b2b", "HOLD": "#b29c5a"}
+            verdict_color = {"BUY": "#7affc9", "SELL": "#ff7a7a", "HOLD": "#ffe17a"}
             st.markdown(
-                f"<div style='margin-top:0.8em; font-size:1.19em; font-family:EB Garamond,serif;'><b>Final Verdict: "
+                f"<div style='margin-top:0.8em; font-size:1.19em; font-family:EB Garamond,serif; color:#f9fafb;'><b>Final Verdict: "
                 f"<span style='color:{verdict_color[verdict]}'>{verdict}</span></b></div>",
                 unsafe_allow_html=True
             )
@@ -342,7 +359,7 @@ if st.session_state["data_loaded"]:
             allocation_block = ""
             if verdict == "BUY":
                 st.markdown(
-                    f"<span style='font-family:EB Garamond,serif; font-size:1.02em; margin-bottom:0.1em; display:block;'>{capital_help}</span>",
+                    f"<span style='font-family:EB Garamond,serif; font-size:1.02em; margin-bottom:0.1em; display:block; color:#f9fafb;'>{capital_help}</span>",
                     unsafe_allow_html=True
                 )
                 capital = st.number_input("Your available capital ($):", min_value=0.0, step=100.0, key=f"capital_{ticker}")
@@ -350,14 +367,14 @@ if st.session_state["data_loaded"]:
                     safe_num = int((capital * safe_pct) // latest_close)
                     risky_num = int((capital * risky_pct) // latest_close)
                     allocation_block = (
-                        f"<b>Safe allocation:</b> {int(safe_pct * 100)}% &rarr; <b>Buy <span style='color:#189c3a'>{safe_num}</span> shares</b><br>"
-                        f"<b>Risky allocation:</b> {int(risky_pct * 100)}% &rarr; <b>Buy <span style='color:#c12b2b'>{risky_num}</span> shares</b>"
+                        f"<b>Safe allocation:</b> {int(safe_pct * 100)}% &rarr; <b>Buy <span style='color:#7affc9'>{safe_num}</span> shares</b><br>"
+                        f"<b>Risky allocation:</b> {int(risky_pct * 100)}% &rarr; <b>Buy <span style='color:#ff7a7a'>{risky_num}</span> shares</b>"
                     )
                 else:
                     allocation_block = f"Enter at least ${min_capital:.2f} capital to see recommended shares to buy."
             elif verdict == "SELL":
                 st.markdown(
-                    f"<span style='font-family:EB Garamond,serif; font-size:1.02em; margin-bottom:0.1em; display:block;'>{shares_help}</span>",
+                    f"<span style='font-family:EB Garamond,serif; font-size:1.02em; margin-bottom:0.1em; display:block; color:#f9fafb;'>{shares_help}</span>",
                     unsafe_allow_html=True
                 )
                 shares_owned = st.number_input("Your number of shares owned:", min_value=0, step=1, key=f"shares_{ticker}")
@@ -365,14 +382,14 @@ if st.session_state["data_loaded"]:
                     safe_num = int(shares_owned * safe_pct)
                     risky_num = int(shares_owned * risky_pct)
                     allocation_block = (
-                        f"<b>Safe allocation:</b> {int(safe_pct * 100)}% &rarr; <b>Sell <span style='color:#189c3a'>{safe_num}</span> shares</b><br>"
-                        f"<b>Risky allocation:</b> {int(risky_pct * 100)}% &rarr; <b>Sell <span style='color:#c12b2b'>{risky_num}</span> shares</b>"
+                        f"<b>Safe allocation:</b> {int(safe_pct * 100)}% &rarr; <b>Sell <span style='color:#7affc9'>{safe_num}</span> shares</b><br>"
+                        f"<b>Risky allocation:</b> {int(risky_pct * 100)}% &rarr; <b>Sell <span style='color:#ff7a7a'>{risky_num}</span> shares</b>"
                     )
                 else:
                     allocation_block = f"Enter at least 2 shares owned to see recommended shares to sell."
             else:  # HOLD or unclear
                 st.markdown(
-                    f"<span style='font-family:EB Garamond,serif; font-size:1.02em; margin-bottom:0.1em; display:block;'>{shares_help}</span>",
+                    f"<span style='font-family:EB Garamond,serif; font-size:1.02em; margin-bottom:0.1em; display:block; color:#f9fafb;'>{shares_help}</span>",
                     unsafe_allow_html=True
                 )
                 shares_owned = st.number_input("Your number of shares owned:", min_value=0, step=1, key=f"shares_{ticker}")
@@ -380,22 +397,22 @@ if st.session_state["data_loaded"]:
                     safe_num = int(shares_owned * safe_pct)
                     risky_num = int(shares_owned * risky_pct)
                     allocation_block = (
-                        f"<b>Safe allocation:</b> {int(safe_pct * 100)}% &rarr; <b>Hold <span style='color:#189c3a'>{shares_owned - safe_num}</span> shares</b><br>"
-                        f"<b>Risky allocation:</b> {int(risky_pct * 100)}% &rarr; <b>Hold <span style='color:#c12b2b'>{shares_owned - risky_num}</span> shares</b>"
+                        f"<b>Safe allocation:</b> {int(safe_pct * 100)}% &rarr; <b>Hold <span style='color:#7affc9'>{shares_owned - safe_num}</span> shares</b><br>"
+                        f"<b>Risky allocation:</b> {int(risky_pct * 100)}% &rarr; <b>Hold <span style='color:#ff7a7a'>{shares_owned - risky_num}</span> shares</b>"
                     )
                 else:
                     allocation_block = f"Enter at least 2 shares owned to see recommended shares to hold."
 
             st.markdown(
-                f"<div style='font-size:1.09em; margin-top:0.23em; font-family:EB Garamond,serif;'>{allocation_block}</div>",
+                f"<div style='font-size:1.09em; margin-top:0.23em; font-family:EB Garamond,serif; color:#f9fafb;'>{allocation_block}</div>",
                 unsafe_allow_html=True
             )
             st.markdown(
-                "<div style='margin-top:0.7em; font-family:EB Garamond,serif;'>" + "<br>".join(ai_text) + "</div>",
+                "<div style='margin-top:0.7em; font-family:EB Garamond,serif; color:#f9fafb;'>" + "<br>".join(ai_text) + "</div>",
                 unsafe_allow_html=True
             )
             st.markdown(
-                "<div style='font-size:1.02em; color:#a08c64; font-family:EB Garamond,serif;'>(These suggestions are rule-based and for educational purposes. Always research thoroughly before investing!)</div>",
+                "<div style='font-size:1.02em; color:#ffe17a; font-family:EB Garamond,serif;'>(These suggestions are rule-based and for educational purposes. Always research thoroughly before investing!)</div>",
                 unsafe_allow_html=True
             )
 
@@ -411,7 +428,7 @@ with st.expander("About QuantPilot"):
     - Multi-ticker support!
     """, unsafe_allow_html=True)
     st.markdown("""
-    <div style="text-align:center; font-family:'EB Garamond',serif; font-size:1.11rem; color:#888;">
+    <div style="text-align:center; font-family:'EB Garamond',serif; font-size:1.11rem; color:#ffe17a;">
         &copy; 2025 QuantPilot. All rights reserved.
     </div>
     """, unsafe_allow_html=True)
