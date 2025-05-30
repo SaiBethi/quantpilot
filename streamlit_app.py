@@ -3,14 +3,7 @@ st.set_page_config(page_title="QuantPilot: All-in-One Dashboard", layout="wide")
 
 import yfinance as yf
 import pandas as pd
-import plotly.express as px
-
-# Try to load pandas_ta
-try:
-    import pandas_ta as ta
-    TA_INSTALLED = True
-except ImportError:
-    TA_INSTALLED = False
+import plotly.graph_objects as go
 
 # --- CUSTOM STYLING ---
 st.markdown("""
@@ -55,7 +48,7 @@ st.markdown("""
 st.markdown("<h1 style='text-align:center;'>📈 QuantPilot: All-in-One Dashboard</h1>", unsafe_allow_html=True)
 st.markdown("""
 <div style='text-align:center; font-size:1.2rem; margin-bottom:1.5em;'>
-    Level up your investing with <b>QuantPilot</b>: advanced analytics, interactive charts, and easy-to-understand insights.<br>
+    Level up your investing with <b>QuantPilot</b>: analytics, interactive charts, and easy-to-understand insights.<br>
     <span style='color:#666; font-size:1rem;'>
     Get clarity on your stocks—no matter your experience level.
     </span>
@@ -81,29 +74,15 @@ with st.expander("① Start Here: Select Tickers and Date Range", expanded=True)
 
 # ---- 2. Indicator Explanations ----
 st.markdown("<h2 style='margin-top:1.7em;'>② Indicator Explanations</h2>", unsafe_allow_html=True)
-if TA_INSTALLED:
-    st.markdown("""
+st.markdown("""
 <ul style='font-size:1.08em;'>
 <li><b>Candlestick Chart:</b> Shows price open, high, low, and close for each period.</li>
-<li><b>SMA/EMA (MA20, MA50, EMA20, EMA50, EMA100, EMA200, SMA100, SMA200):</b> Moving averages smooth price and show trends. EMAs react faster to price changes.</li>
-<li><b>Bollinger Bands (BB Upper/Lower):</b> Show likely overbought (upper) and oversold (lower) price levels, based on volatility.</li>
-<li><b>VWAP (Volume Weighted Average Price):</b> Average price weighted by volume; shows the “fair” market price.</li>
-<li><b>RSI (Relative Strength Index):</b> Measures momentum (0-100). Over 70: overbought; under 30: oversold.</li>
-<li><b>MACD (Moving Average Convergence Divergence):</b> Tracks momentum and trend shifts. Crossovers are key signals.</li>
-<li><b>ATR (Average True Range):</b> Indicates volatility (how much price moves up/down).</li>
-<li><b>Stochastic Oscillator:</b> Shows overbought/oversold conditions based on recent highs/lows.</li>
-<li><b>CCI (Commodity Channel Index):</b> Identifies cyclical trends and extremes.</li>
-<li><b>ADX (Average Directional Index):</b> Shows trend strength (not direction).</li>
+<li><b>MA20 & MA50:</b> Simple moving averages that smooth price and reveal trend direction. MA20 is short-term, MA50 is longer-term.</li>
+<li><b>EMA20 & EMA50:</b> Exponential moving averages; they react more quickly to price changes.</li>
+<li><b>Volume Bars:</b> Number of shares traded each period.</li>
+<li><b>Basic "AI" Suggestion:</b> Looks at price vs. averages to suggest bullish/bearish/neutral.</li>
 </ul>
-    """, unsafe_allow_html=True)
-else:
-    st.markdown("""
-<ul style='font-size:1.08em;'>
-<li><b>Candlestick Chart:</b> Shows price open, high, low, and close for each period.</li>
-<li><b>SMA/EMA (MA20, MA50):</b> Moving averages smooth price and show trends.</li>
-</ul>
-    """, unsafe_allow_html=True)
-    st.info("Install `pandas_ta` for more advanced technical indicators (pip install pandas_ta).")
+""", unsafe_allow_html=True)
 
 st.markdown("<h2 style='margin-top:2em;'>③ Stock Data & Analysis</h2>", unsafe_allow_html=True)
 if st.button("Get Data & Analyze", key="getdata"):
@@ -127,104 +106,44 @@ if st.button("Get Data & Analyze", key="getdata"):
                 continue
 
             df = data[[c for c in [open_col, close_col, high_col, low_col, vol_col] if c in data.columns]].copy()
-
-            # --- Add as many indicators as possible ---
-            if TA_INSTALLED:
-                # Moving Averages
-                df['EMA20'] = ta.ema(df[close_col], length=20)
-                df['EMA50'] = ta.ema(df[close_col], length=50)
-                df['EMA100'] = ta.ema(df[close_col], length=100)
-                df['EMA200'] = ta.ema(df[close_col], length=200)
-                df['SMA20'] = ta.sma(df[close_col], length=20)
-                df['SMA50'] = ta.sma(df[close_col], length=50)
-                df['SMA100'] = ta.sma(df[close_col], length=100)
-                df['SMA200'] = ta.sma(df[close_col], length=200)
-                # Bollinger Bands
-                bb = ta.bbands(df[close_col], length=20)
-                for c in bb.columns:
-                    df[c] = bb[c]
-                # VWAP
-                if all(x in df.columns for x in [high_col, low_col, close_col, vol_col]):
-                    df['VWAP'] = ta.vwap(df[high_col], df[low_col], df[close_col], df[vol_col])
-                # RSI
-                df['RSI'] = ta.rsi(df[close_col], length=14)
-                # MACD
-                macd = ta.macd(df[close_col])
-                for c in macd.columns:
-                    df[c] = macd[c]
-                # ATR
-                if all(x in df.columns for x in [high_col, low_col, close_col]):
-                    df['ATR'] = ta.atr(df[high_col], df[low_col], df[close_col])
-                # Stochastic
-                if all(x in df.columns for x in [high_col, low_col, close_col]):
-                    stoch = ta.stoch(df[high_col], df[low_col], df[close_col])
-                    for c in stoch.columns:
-                        df[c] = stoch[c]
-                # CCI
-                if all(x in df.columns for x in [high_col, low_col, close_col]):
-                    df['CCI'] = ta.cci(df[high_col], df[low_col], df[close_col])
-                # ADX
-                if all(x in df.columns for x in [high_col, low_col, close_col]):
-                    df['ADX'] = ta.adx(df[high_col], df[low_col], df[close_col])['ADX_14']
-            else:
-                df['MA20'] = df[close_col].rolling(window=20).mean()
-                df['MA50'] = df[close_col].rolling(window=50).mean()
+            # --- Moving Averages ---
+            df['MA20'] = df[close_col].rolling(window=20).mean()
+            df['MA50'] = df[close_col].rolling(window=50).mean()
+            df['EMA20'] = df[close_col].ewm(span=20, adjust=False).mean()
+            df['EMA50'] = df[close_col].ewm(span=50, adjust=False).mean()
 
             # --- Price Chart & Indicators ---
             st.markdown("<h4>📊 Price Chart & Indicators</h4>", unsafe_allow_html=True)
-            chart_cols = [close_col]
-            if TA_INSTALLED:
-                chart_cols += [
-                    "EMA20", "EMA50", "EMA100", "EMA200",
-                    "SMA20", "SMA50", "SMA100", "SMA200",
-                    "VWAP", "BBL_20_2.0", "BBU_20_2.0"
-                ]
-            else:
-                chart_cols += ["MA20", "MA50"]
+            fig = go.Figure()
+            fig.add_trace(go.Candlestick(
+                x=df.index, open=df[open_col], high=df[high_col], low=df[low_col], close=df[close_col],
+                name='Candlestick'
+            ))
+            fig.add_trace(go.Scatter(
+                x=df.index, y=df["MA20"], line=dict(color='blue', width=1), name="MA20"
+            ))
+            fig.add_trace(go.Scatter(
+                x=df.index, y=df["MA50"], line=dict(color='orange', width=1), name="MA50"
+            ))
+            fig.add_trace(go.Scatter(
+                x=df.index, y=df["EMA20"], line=dict(color='purple', width=1, dash='dot'), name="EMA20"
+            ))
+            fig.add_trace(go.Scatter(
+                x=df.index, y=df["EMA50"], line=dict(color='green', width=1, dash='dot'), name="EMA50"
+            ))
+            fig.update_layout(
+                title=f"{ticker} Price Chart",
+                yaxis_title="Price",
+                xaxis_title="Date",
+                xaxis_rangeslider_visible=False,
+                template="plotly_white",
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+            )
+            st.plotly_chart(fig, use_container_width=True)
 
-            plot_cols = [c for c in chart_cols if c in df.columns and df[c].notna().any()]
-            if plot_cols:
-                fig = px.line(df, x=df.index, y=plot_cols, title=f"{ticker} Price & Technical Indicators", labels={"value": "Price"})
-                st.plotly_chart(fig, use_container_width=True)
-            else:
-                st.info("No valid data to plot for this ticker and timeframe.")
-
-            # ---- RSI Chart ----
-            if "RSI" in df.columns and df["RSI"].notna().any():
-                st.markdown("<h4>📉 RSI (Momentum)</h4>", unsafe_allow_html=True)
-                st.line_chart(df['RSI'])
-
-            # ---- MACD Chart ----
-            if (
-                "MACD_12_26_9" in df.columns and
-                "MACDs_12_26_9" in df.columns and
-                df["MACD_12_26_9"].notna().any()
-            ):
-                st.markdown("<h4>📈 MACD</h4>", unsafe_allow_html=True)
-                st.line_chart(df[["MACD_12_26_9", "MACDs_12_26_9"]])
-
-            # ---- ATR Chart ----
-            if "ATR_14" in df.columns and df["ATR_14"].notna().any():
-                st.markdown("<h4>📊 ATR (Volatility)</h4>", unsafe_allow_html=True)
-                st.line_chart(df['ATR_14'])
-            elif "ATR" in df.columns and df["ATR"].notna().any():
-                st.markdown("<h4>📊 ATR (Volatility)</h4>", unsafe_allow_html=True)
-                st.line_chart(df['ATR'])
-
-            # ---- Stochastic Oscillator Chart ----
-            if "STOCHk_14_3_3" in df.columns and "STOCHd_14_3_3" in df.columns:
-                st.markdown("<h4>📈 Stochastic Oscillator</h4>", unsafe_allow_html=True)
-                st.line_chart(df[["STOCHk_14_3_3", "STOCHd_14_3_3"]])
-
-            # ---- CCI Chart ----
-            if "CCI_20" in df.columns and df["CCI_20"].notna().any():
-                st.markdown("<h4>📈 CCI (Commodity Channel Index)</h4>", unsafe_allow_html=True)
-                st.line_chart(df["CCI_20"])
-
-            # ---- ADX Chart ----
-            if "ADX" in df.columns and df["ADX"].notna().any():
-                st.markdown("<h4>📈 ADX (Trend Strength)</h4>", unsafe_allow_html=True)
-                st.line_chart(df["ADX"])
+            # ---- Volume Chart ----
+            if vol_col in df.columns:
+                st.bar_chart(df[vol_col], use_container_width=True)
 
             # ---- Key Stats ----
             st.markdown("<h4>📋 Key Stats for this Period</h4>", unsafe_allow_html=True)
@@ -243,48 +162,34 @@ if st.button("Get Data & Analyze", key="getdata"):
                 mime="text/csv",
             )
 
-            # ---- AI-Powered Trading Suggestion ----
+            # ---- "AI" Trading Suggestion ----
             st.markdown("<h4>🤖 AI-Powered Trading Suggestion</h4>", unsafe_allow_html=True)
             mean_close = df[close_col].mean()
-            rsi_val = df['RSI'].dropna().iloc[-1] if "RSI" in df.columns and df['RSI'].notna().any() else None
-            macd_val = df['MACD_12_26_9'].dropna().iloc[-1] if "MACD_12_26_9" in df.columns and df['MACD_12_26_9'].notna().any() else None
-            bb_upper = df['BBU_20_2.0'].dropna().iloc[-1] if "BBU_20_2.0" in df.columns and df['BBU_20_2.0'].notna().any() else None
-            bb_lower = df['BBL_20_2.0'].dropna().iloc[-1] if "BBL_20_2.0" in df.columns and df['BBL_20_2.0'].notna().any() else None
 
             suggestion = []
-            if latest_close > mean_close:
-                suggestion.append("The current price is **above** its average—bullish trend.")
-            elif latest_close < mean_close:
-                suggestion.append("The current price is **below** its average—watch for reversals.")
+            if latest_close > df["MA20"].dropna().iloc[-1]:
+                suggestion.append("Price is above MA20: short-term trend is bullish.")
+            elif latest_close < df["MA20"].dropna().iloc[-1]:
+                suggestion.append("Price is below MA20: short-term trend is cautious.")
 
-            if rsi_val is not None and not pd.isna(rsi_val):
-                if rsi_val > 70:
-                    suggestion.append("RSI suggests the stock is **overbought**. Caution: may pull back soon.")
-                elif rsi_val < 30:
-                    suggestion.append("RSI suggests the stock is **oversold**. There could be a rebound opportunity.")
-                else:
-                    suggestion.append("RSI is in a neutral range.")
+            if latest_close > df["MA50"].dropna().iloc[-1]:
+                suggestion.append("Price is above MA50: longer-term trend is bullish.")
+            elif latest_close < df["MA50"].dropna().iloc[-1]:
+                suggestion.append("Price is below MA50: longer-term trend is cautious.")
 
-            if macd_val is not None and not pd.isna(macd_val):
-                if macd_val > 0:
-                    suggestion.append("MACD is positive: momentum is to the upside.")
-                else:
-                    suggestion.append("MACD is negative: momentum leans bearish.")
+            if abs(latest_close - mean_close) / mean_close < 0.02:
+                suggestion.append("Price is close to its recent average—possible consolidation.")
 
-            if bb_upper is not None and not pd.isna(bb_upper) and latest_close >= bb_upper:
-                suggestion.append("Price is touching the **upper Bollinger Band** (potential overbought).")
-            if bb_lower is not None and not pd.isna(bb_lower) and latest_close <= bb_lower:
-                suggestion.append("Price is touching the **lower Bollinger Band** (potential oversold).")
-
-            st.markdown(" ".join(suggestion))
+            st.markdown(" ".join(suggestion) if suggestion else "No strong trend signals detected.")
             st.caption("(*These suggestions are rule-based and for educational purposes. Always research thoroughly before investing!*)")
 
 with st.expander("About QuantPilot"):
     st.markdown("""
     <b>QuantPilot</b> empowers investors with:
-    - Beautiful, interactive charts
-    - Multiple technical indicators
-    - Downloadable data
+    - Beautiful, interactive candlestick charts
+    - Moving averages (SMA & EMA)
+    - Volume data
+    - Downloadable CSVs
     - Clear, plain-English insights
     - Multi-ticker support!
     """, unsafe_allow_html=True)
