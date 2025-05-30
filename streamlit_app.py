@@ -262,104 +262,109 @@ if st.button("Get Data & Analyze", key="getdata"):
                 mime="text/csv",
             )
 
-            # ---- AI-Powered Trading Suggestion ----
-            st.markdown("<div class='ai-suggestion'><b>🤖 AI-Powered Trading Suggestion</b><br>", unsafe_allow_html=True)
-            ai_text = []
-            ma_short, ma_med, ma_long = df['MA20'].dropna(), df['MA50'].dropna(), df['MA200'].dropna()
-            verdict, safe_pct, risky_pct = "HOLD", 0, 0
-            if not ma_short.empty and not ma_med.empty and not ma_long.empty:
-                if latest_close > ma_short.iloc[-1] and latest_close > ma_med.iloc[-1] and latest_close > ma_long.iloc[-1]:
-                    ai_text.append("🚀 All trends (short/medium/long-term) are bullish. Strong uptrend.")
-                    verdict = "BUY"
-                elif latest_close < ma_short.iloc[-1] and latest_close < ma_med.iloc[-1] and latest_close < ma_long.iloc[-1]:
-                    ai_text.append("🔻 All trends are bearish. Strong downtrend.")
-                    verdict = "SELL"
-                elif latest_close > ma_short.iloc[-1] and latest_close > ma_med.iloc[-1]:
-                    ai_text.append("↗️ Short/medium-term trend is bullish.")
-                    verdict = "BUY"
-                elif latest_close < ma_short.iloc[-1] and latest_close < ma_med.iloc[-1]:
-                    ai_text.append("↘️ Short/medium-term trend is bearish.")
-                    verdict = "SELL"
-                else:
-                    ai_text.append("⏸️ Mixed trends. Consider holding or waiting for clarity.")
-                    verdict = "HOLD"
-            # --- Volatility
-            recent_volatility = df['Volatility (20d)'].dropna().iloc[-1] if df['Volatility (20d)'].notna().any() else 0
-            avg_volatility = df['Volatility (20d)'].dropna().mean() if df['Volatility (20d)'].notna().any() else 0
-            if recent_volatility and avg_volatility:
-                if recent_volatility > 1.2 * avg_volatility:
-                    ai_text.append("⚡ Volatility is HIGH: Expect major price swings.")
-                elif recent_volatility < 0.8 * avg_volatility:
-                    ai_text.append("🔕 Volatility is LOW: Market is calm.")
-                else:
-                    ai_text.append("📏 Volatility is moderate.")
-            # --- Momentum
-            latest_mom = df['Daily % Change'].dropna().iloc[-1] if df['Daily % Change'].notna().any() else 0
-            if latest_mom > 1.5:
-                ai_text.append("📈 Strong positive momentum today.")
-            elif latest_mom < -1.5:
-                ai_text.append("📉 Strong negative momentum today.")
-            else:
-                ai_text.append("🔄 Momentum is neutral.")
+# --- User inputs and AI-Powered Trading Suggestion ---
+st.markdown("<div class='ai-suggestion'><b>🤖 AI-Powered Trading Suggestion</b><br>", unsafe_allow_html=True)
+ai_text = []
+ma_short, ma_med, ma_long = df['MA20'].dropna(), df['MA50'].dropna(), df['MA200'].dropna()
+verdict, safe_pct, risky_pct = "HOLD", 0, 0
+if not ma_short.empty and not ma_med.empty and not ma_long.empty:
+    if latest_close > ma_short.iloc[-1] and latest_close > ma_med.iloc[-1] and latest_close > ma_long.iloc[-1]:
+        ai_text.append("🚀 All trends (short/medium/long-term) are bullish. Strong uptrend.")
+        verdict = "BUY"
+    elif latest_close < ma_short.iloc[-1] and latest_close < ma_med.iloc[-1] and latest_close < ma_long.iloc[-1]:
+        ai_text.append("🔻 All trends are bearish. Strong downtrend.")
+        verdict = "SELL"
+    elif latest_close > ma_short.iloc[-1] and latest_close > ma_med.iloc[-1]:
+        ai_text.append("↗️ Short/medium-term trend is bullish.")
+        verdict = "BUY"
+    elif latest_close < ma_short.iloc[-1] and latest_close < ma_med.iloc[-1]:
+        ai_text.append("↘️ Short/medium-term trend is bearish.")
+        verdict = "SELL"
+    else:
+        ai_text.append("⏸️ Mixed trends. Consider holding or waiting for clarity.")
+        verdict = "HOLD"
+# --- Volatility
+recent_volatility = df['Volatility (20d)'].dropna().iloc[-1] if df['Volatility (20d)'].notna().any() else 0
+avg_volatility = df['Volatility (20d)'].dropna().mean() if df['Volatility (20d)'].notna().any() else 0
+if recent_volatility and avg_volatility:
+    if recent_volatility > 1.2 * avg_volatility:
+        ai_text.append("⚡ Volatility is HIGH: Expect major price swings.")
+    elif recent_volatility < 0.8 * avg_volatility:
+        ai_text.append("🔕 Volatility is LOW: Market is calm.")
+    else:
+        ai_text.append("📏 Volatility is moderate.")
+# --- Momentum
+latest_mom = df['Daily % Change'].dropna().iloc[-1] if df['Daily % Change'].notna().any() else 0
+if latest_mom > 1.5:
+    ai_text.append("📈 Strong positive momentum today.")
+elif latest_mom < -1.5:
+    ai_text.append("📉 Strong negative momentum today.")
+else:
+    ai_text.append("🔄 Momentum is neutral.")
 
-            # --- Final verdict logic
-            if verdict == "BUY":
-                safe_pct = 0.3
-                risky_pct = 0.6 if recent_volatility < 1.2 * avg_volatility else 0.3
-            elif verdict == "SELL":
-                safe_pct = 0.3
-                risky_pct = 0.7 if recent_volatility > 1.2 * avg_volatility else 0.45
-            else:  # HOLD or unclear
-                safe_pct = 0.1
-                risky_pct = 0.2
+# --- Final verdict logic
+if verdict == "BUY":
+    safe_pct = 0.3
+    risky_pct = 0.6 if recent_volatility < 1.2 * avg_volatility else 0.3
+elif verdict == "SELL":
+    safe_pct = 0.3
+    risky_pct = 0.7 if recent_volatility > 1.2 * avg_volatility else 0.45
+else:  # HOLD or unclear
+    safe_pct = 0.1
+    risky_pct = 0.2
 
-            verdict_color = {"BUY": "#189c3a", "SELL": "#c12b2b", "HOLD": "#b29c5a"}
-            verdict_block = f"""
-            <div style='margin-top:0.8em; font-size:1.19em; font-family:EB Garamond,serif;'>
-                <b>Final Verdict: <span style='color:{verdict_color[verdict]}'>{verdict}</span></b>
-            </div>
-            """
+verdict_color = {"BUY": "#189c3a", "SELL": "#c12b2b", "HOLD": "#b29c5a"}
+st.markdown(
+    f"<div style='margin-top:0.8em; font-size:1.19em; font-family:EB Garamond,serif;'><b>Final Verdict: "
+    f"<span style='color:{verdict_color[verdict]}'>{verdict}</span></b></div>",
+    unsafe_allow_html=True
+)
 
-            # -- User input for allocation --
-            safe_num, risky_num = None, None
-            if verdict == "BUY":
-                capital = st.number_input("Enter your available capital ($):", min_value=0.0, step=100.0, key=f"capital_{ticker}")
-                if capital > 0:
-                    safe_num = int((capital * safe_pct) // latest_close)
-                    risky_num = int((capital * risky_pct) // latest_close)
-                    allocation_block = (
-                        f"<b>Safe allocation:</b> {int(safe_pct * 100)}% &rarr; <b>Buy <span style='color:#189c3a'>{safe_num}</span> shares</b><br>"
-                        f"<b>Risky allocation:</b> {int(risky_pct * 100)}% &rarr; <b>Buy <span style='color:#c12b2b'>{risky_num}</span> shares</b>"
-                    )
-                else:
-                    allocation_block = "Enter your available capital to see recommended shares to buy."
-            elif verdict == "SELL":
-                shares_owned = st.number_input("Enter your number of shares owned:", min_value=0, step=1, key=f"shares_{ticker}")
-                if shares_owned > 0:
-                    safe_num = int(shares_owned * safe_pct)
-                    risky_num = int(shares_owned * risky_pct)
-                    allocation_block = (
-                        f"<b>Safe allocation:</b> {int(safe_pct * 100)}% &rarr; <b>Sell <span style='color:#189c3a'>{safe_num}</span> shares</b><br>"
-                        f"<b>Risky allocation:</b> {int(risky_pct * 100)}% &rarr; <b>Sell <span style='color:#c12b2b'>{risky_num}</span> shares</b>"
-                    )
-                else:
-                    allocation_block = "Enter your shares owned to see recommended shares to sell."
-            else:  # HOLD
-                shares_owned = st.number_input("Enter your number of shares owned:", min_value=0, step=1, key=f"shares_{ticker}")
-                if shares_owned > 0:
-                    safe_num = int(shares_owned * safe_pct)
-                    risky_num = int(shares_owned * risky_pct)
-                    allocation_block = (
-                        f"<b>Safe allocation:</b> {int(safe_pct * 100)}% &rarr; <b>Hold <span style='color:#189c3a'>{shares_owned - safe_num}</span> shares</b><br>"
-                        f"<b>Risky allocation:</b> {int(risky_pct * 100)}% &rarr; <b>Hold <span style='color:#c12b2b'>{shares_owned - risky_num}</span> shares</b>"
-                    )
-                else:
-                    allocation_block = "Enter your shares owned to see recommended shares to hold."
+# -- User input for allocation, always visible --
+allocation_block = ""
+if verdict == "BUY":
+    capital = st.number_input("Your available capital ($):", min_value=0.0, step=100.0, key=f"capital_{ticker}")
+    if capital > 0 and latest_close > 0:
+        safe_num = int((capital * safe_pct) // latest_close)
+        risky_num = int((capital * risky_pct) // latest_close)
+        allocation_block = (
+            f"<b>Safe allocation:</b> {int(safe_pct * 100)}% &rarr; <b>Buy <span style='color:#189c3a'>{safe_num}</span> shares</b><br>"
+            f"<b>Risky allocation:</b> {int(risky_pct * 100)}% &rarr; <b>Buy <span style='color:#c12b2b'>{risky_num}</span> shares</b>"
+        )
+    else:
+        allocation_block = "Enter your available capital to see recommended shares to buy."
+elif verdict == "SELL":
+    shares_owned = st.number_input("Your number of shares owned:", min_value=0, step=1, key=f"shares_{ticker}")
+    if shares_owned > 0:
+        safe_num = int(shares_owned * safe_pct)
+        risky_num = int(shares_owned * risky_pct)
+        allocation_block = (
+            f"<b>Safe allocation:</b> {int(safe_pct * 100)}% &rarr; <b>Sell <span style='color:#189c3a'>{safe_num}</span> shares</b><br>"
+            f"<b>Risky allocation:</b> {int(risky_pct * 100)}% &rarr; <b>Sell <span style='color:#c12b2b'>{risky_num}</span> shares</b>"
+        )
+    else:
+        allocation_block = "Enter your shares owned to see recommended shares to sell."
+else:  # HOLD or unclear
+    shares_owned = st.number_input("Your number of shares owned:", min_value=0, step=1, key=f"shares_{ticker}")
+    if shares_owned > 0:
+        safe_num = int(shares_owned * safe_pct)
+        risky_num = int(shares_owned * risky_pct)
+        allocation_block = (
+            f"<b>Safe allocation:</b> {int(safe_pct * 100)}% &rarr; <b>Hold <span style='color:#189c3a'>{shares_owned - safe_num}</span> shares</b><br>"
+            f"<b>Risky allocation:</b> {int(risky_pct * 100)}% &rarr; <b>Hold <span style='color:#c12b2b'>{shares_owned - risky_num}</span> shares</b>"
+        )
+    else:
+        allocation_block = "Enter your shares owned to see recommended shares to hold."
 
-            st.markdown(
-                verdict_block +
-                f"<div style='font-size:1.09em; margin-top:0.23em; font-family:EB Garamond,serif;'>{allocation_block}</div>",
-                unsafe_allow_html=True
-            )
-            st.markdown("<div style='margin-top:0.7em; font-family:EB Garamond,serif;'>" + "<br>".join(ai_text) + "</div>", unsafe_allow_html=True)
-            st.markdown("<div style='font-size:1.02em; color:#a08c64; font-family:EB Garamond,serif;'>(These suggestions are rule-based and for educational purposes. Always research thoroughly before investing!)</div>", unsafe_allow_html=True)
+st.markdown(
+    f"<div style='font-size:1.09em; margin-top:0.23em; font-family:EB Garamond,serif;'>{allocation_block}</div>",
+    unsafe_allow_html=True
+)
+st.markdown(
+    "<div style='margin-top:0.7em; font-family:EB Garamond,serif;'>" + "<br>".join(ai_text) + "</div>",
+    unsafe_allow_html=True
+)
+st.markdown(
+    "<div style='font-size:1.02em; color:#a08c64; font-family:EB Garamond,serif;'>(These suggestions are rule-based and for educational purposes. Always research thoroughly before investing!)</div>",
+    unsafe_allow_html=True
+)
