@@ -440,19 +440,33 @@ if st.session_state["data_loaded"]:
                 unsafe_allow_html=True
             )
 
-with st.expander("About QuantPilot"):
-    st.markdown("""
-    <b>QuantPilot</b> empowers investors with:
-    - Beautiful, interactive candlestick charts
-    - Moving averages (SMA & EMA)
-    - Volatility and momentum insights
-    - Volume data
-    - Downloadable CSVs
-    - Clear, plain-English insights
-    - Multi-ticker support!
-    """, unsafe_allow_html=True)
-    st.markdown("""
-    <div style="text-align:center; font-family:'EB Garamond',serif; font-size:1.11rem; color:#aaa;">
-        &copy; 2025 QuantPilot. All rights reserved.
-    </div>
-    """, unsafe_allow_html=True)
+st.markdown("""
+<div style='
+    font-family: "EB Garamond", serif; 
+    font-size: 1.41em; 
+    color: #ffd700; 
+    margin-top: 1.4em; 
+    margin-bottom: 1.1em; 
+    letter-spacing: 0.01em;
+    text-shadow: 0 2px 12px #000;
+'>
+    <b>About QuantPilot</b>
+</div>
+<div style='
+    font-family: "EB Garamond", serif; 
+    font-size: 1.13em;
+    color: #fff;
+    margin-bottom: 0.9em;
+'>
+    QuantPilot empowers investors with:<br><br>
+    <ul style="margin-top:0.2em; margin-bottom:0.5em; font-size:1.09em;">
+        <li>Beautiful, interactive candlestick charts</li>
+        <li>Moving averages (SMA &amp; EMA)</li>
+        <li>Volatility and momentum insights</li>
+        <li>Volume data</li>
+        <li>Downloadable CSVs</li>
+        <li>Clear, plain-English insights</li>
+        <li>Multi-ticker support!</li>
+    </ul>
+</div>
+""", unsafe_allow_html=True)
