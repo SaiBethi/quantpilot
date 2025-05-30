@@ -10,13 +10,6 @@ try:
 except ImportError:
     TA_INSTALLED = False
 
-# Optional: For AI chat (OpenAI)
-try:
-    import openai
-    AI_AVAILABLE = True
-except ImportError:
-    AI_AVAILABLE = False
-
 st.set_page_config(page_title="QuantPilot All-in-One", layout="wide")
 
 # ---- Custom Font and Styling ----
@@ -58,59 +51,9 @@ st.markdown("""
 
 st.title("📈 QuantPilot: All-in-One Dashboard")
 
-# ---- Sidebar for Navigation & AI Coach ----
-with st.sidebar:
-    st.markdown(
-        "<h2 style='font-family: \"EB Garamond\", serif; color:#191c24;'>🧑‍💼 AI Investment Coach</h2>",
-        unsafe_allow_html=True
-    )
-    st.caption("Ask your AI coach anything about investing, stocks, or your portfolio.")
-
-    if AI_AVAILABLE:
-        if 'chat_history' not in st.session_state:
-            st.session_state.chat_history = []
-        user_input = st.text_area("Ask your coach:", key="ai_input")
-        if st.button("Ask AI"):
-            if user_input.strip():
-                with st.spinner("AI Coach is thinking..."):
-                    # You need to set your OpenAI API key for this to work.
-                    # Example: openai.api_key = st.secrets["OPENAI_API_KEY"]
-                    try:
-                        openai.api_key = st.secrets["OPENAI_API_KEY"]
-                        messages = [{"role": "system", "content": "You are a helpful investment AI coach. Give clear, concise, and actionable advice."}]
-                        for msg in st.session_state.chat_history:
-                            messages.append({"role": msg["role"], "content": msg["content"]})
-                        messages.append({"role": "user", "content": user_input})
-                        response = openai.ChatCompletion.create(
-                            model="gpt-3.5-turbo",
-                            messages=messages,
-                            max_tokens=256,
-                            temperature=0.1
-                        )
-                        ai_reply = response.choices[0].message.content
-                        st.session_state.chat_history.append({"role": "user", "content": user_input})
-                        st.session_state.chat_history.append({"role": "assistant", "content": ai_reply})
-                    except Exception as ex:
-                        ai_reply = f"AI error: {ex}"
-                        st.session_state.chat_history.append({"role": "assistant", "content": ai_reply})
-            else:
-                ai_reply = "Please enter your question."
-                st.session_state.chat_history.append({"role": "assistant", "content": ai_reply})
-
-        # Display chat history
-        for msg in st.session_state.chat_history[-8:]:
-            if msg["role"] == "user":
-                st.markdown(f"<div style='color:#1946d2; margin-bottom:0.3em; font-weight:bold;'>You:</div>"
-                            f"<div style='background:#e4eafc; border-radius:8px; padding:0.7em; margin-bottom:0.8em;'>{msg['content']}</div>", unsafe_allow_html=True)
-            else:
-                st.markdown(f"<div style='color:#191c24; margin-bottom:0.3em; font-weight:bold;'>AI:</div>"
-                            f"<div style='background:#fff; border-radius:8px; padding:0.7em; margin-bottom:0.8em;'>{msg['content']}</div>", unsafe_allow_html=True)
-    else:
-        st.info("Install OpenAI (`pip install openai`) and set your API key in Streamlit secrets for AI chat.")
-
 st.markdown(
     "<div style='font-size:1.5rem; font-family:EB Garamond,serif; margin-bottom:0.7em; text-align:center;'>"
-    "Level up your investing with <b>QuantPilot</b>: AI-powered analytics, real-time visualizations, and actionable insights.<br>"
+    "Level up your investing with <b>QuantPilot</b>: advanced analytics, real-time visualizations, and actionable insights.<br>"
     "Transform complexity into clarity and make every decision count—no matter your experience level."
     "</div>",
     unsafe_allow_html=True
@@ -118,10 +61,12 @@ st.markdown(
 
 # --- User selects multiple tickers and date range
 with st.expander("Stock Data & Analysis", expanded=True):
-    tickers = st.text_input(
-        "Enter one or more stock tickers (comma separated, e.g., AAPL, TSLA, MSFT):",
-        value="AAPL, TSLA"
-    ).upper().replace(" ", "").split(",")
+    tickers = [
+        t for t in st.text_input(
+            "Enter one or more stock tickers (comma separated, e.g., AAPL, TSLA, MSFT):",
+            value="AAPL, TSLA"
+        ).upper().replace(" ", "").split(",") if t
+    ]
 
     col1, col2, col3 = st.columns([2, 2, 2])
     with col1:
@@ -143,6 +88,8 @@ with st.expander("Stock Data & Analysis", expanded=True):
 
     if st.button("Get Data & Analyze", key="getdata"):
         for ticker in tickers:
+            if not ticker:
+                continue
             st.header(f"Stock: {ticker}")
 
             try:
@@ -177,8 +124,8 @@ with st.expander("Stock Data & Analysis", expanded=True):
 
                 # Show metrics
                 st.subheader("Key Stats")
-                st.write(f"**Latest Close:** ${data['Close'][-1]:.2f}")
-                st.write(f"**Volume:** {data['Volume'][-1]:,.0f}")
+                st.write(f"**Latest Close:** ${data['Close'].iloc[-1]:.2f}")
+                st.write(f"**Volume:** {data['Volume'].iloc[-1]:,.0f}")
                 st.write(f"**High (period):** ${data['High'].max():.2f}")
                 st.write(f"**Low (period):** ${data['Low'].min():.2f}")
                 st.write(f"**Total Trading Days:** {len(data)}")
@@ -192,18 +139,18 @@ with st.expander("Stock Data & Analysis", expanded=True):
                     mime="text/csv",
                 )
 
-                # --- AI Advice Section (dummy logic, replace with your AI)
+                # --- AI Advice Section (simple logic)
                 st.subheader("🤖 AI Advice")
                 mean_close = data['Close'].mean()
-                latest_close = data['Close'][-1]
-                rsi_val = data['RSI'][-1] if TA_INSTALLED and "RSI" in data.columns else None
+                latest_close = data['Close'].iloc[-1]
+                rsi_val = data['RSI'].iloc[-1] if TA_INSTALLED and "RSI" in data.columns else None
 
                 advice = []
                 if latest_close > mean_close:
                     advice.append("The stock is trading **above** its average for this period.")
                 else:
                     advice.append("The stock is trading **below** its average for this period.")
-                if rsi_val:
+                if rsi_val is not None:
                     if rsi_val > 70:
                         advice.append("RSI suggests the stock is **overbought**. Be cautious.")
                     elif rsi_val < 30:
@@ -212,27 +159,7 @@ with st.expander("Stock Data & Analysis", expanded=True):
                         advice.append("RSI is in a neutral range.")
 
                 st.markdown(" ".join(advice))
-                st.caption("(*AI advice is a simple demo. Integrate OpenAI for enhanced insights!*)")
-
-                # Placeholder for OpenAI integration:
-                if AI_AVAILABLE and st.checkbox("Get AI-powered summary", key=f"ai_summary_{ticker}"):
-                    prompt = (f"Give me a concise, data-driven investment summary for stock {ticker} "
-                              f"with recent data: {data.tail(30).to_string()}")
-                    try:
-                        openai.api_key = st.secrets["OPENAI_API_KEY"]
-                        messages = [
-                            {"role": "system", "content": "You are a professional investment assistant. Summarize the investment outlook."},
-                            {"role": "user", "content": prompt}
-                        ]
-                        response = openai.ChatCompletion.create(
-                            model="gpt-3.5-turbo",
-                            messages=messages,
-                            max_tokens=256,
-                            temperature=0.1
-                        )
-                        st.success("AI Coach says:\n\n" + response.choices[0].message.content)
-                    except Exception as ex:
-                        st.error(f"AI error: {ex}")
+                st.caption("(*AI advice is a simple rule-based demo. Install OpenAI for enhanced AI insights!*)")
 
             else:
                 st.error("No data found. Please check the ticker or date range.")
@@ -241,10 +168,10 @@ with st.expander("About QuantPilot"):
     st.markdown("""
     **QuantPilot** empowers investors with:
     - Advanced analytics and interactive, real-time charts.
-    - AI-powered advice and technical indicators.
+    - Technical indicators.
     - Clean, readable, and beautiful design.
     - Downloadable data for your own research.
-    - Multi-ticker support and the ability to chat with an AI investment coach!
+    - Multi-ticker support!
     """)
     st.markdown("""
     <div style="text-align:center; font-family:'EB Garamond',serif; font-size:1.11rem; color:#888;">
