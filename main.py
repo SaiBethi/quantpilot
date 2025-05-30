@@ -10,13 +10,13 @@ try:
 except ImportError:
     TA_INSTALLED = False
 
-st.set_page_config(page_title="QuantPilot All-in-One", layout="wide")
+st.set_page_config(page_title="QuantPilot: All-in-One Dashboard", layout="wide")
 
-# ---- Custom Font and Styling ----
+# ---- Global Styling: EB Garamond Everywhere ----
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
-    html, body, [class*="css"]  {
+    html, body, [class*="css"], .stApp {
         font-family: 'EB Garamond', serif !important;
         background: #f4f8fb !important;
     }
@@ -24,7 +24,7 @@ st.markdown("""
         background: #f0f3f9;
         font-family: 'EB Garamond', serif !important;
     }
-    .stButton>button, .stDownloadButton>button {
+    .stButton>button, .stDownloadButton>button, .stSelectbox>div {
         font-family: 'EB Garamond', serif !important;
         font-weight: 600;
         font-size: 1.1rem;
@@ -41,6 +41,9 @@ st.markdown("""
         color: #111;
         box-shadow: 0 4px 16px rgba(0,0,0,0.15);
     }
+    h1, h2, h3, h4, h5, h6, .stMarkdown {
+        font-family: 'EB Garamond', serif !important;
+    }
     .block-container {
         padding-top: 1.2rem;
         padding-right: 2rem;
@@ -49,25 +52,25 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("📈 QuantPilot: All-in-One Dashboard")
+# ---- Title & Intro ----
+st.markdown("<h1 style='text-align:center;'>📈 QuantPilot: All-in-One Dashboard</h1>", unsafe_allow_html=True)
+st.markdown("""
+<div style='text-align:center; font-size:1.2rem; margin-bottom:1.5em;'>
+    Level up your investing with <b>QuantPilot</b>: advanced analytics, interactive charts, and easy-to-understand insights.<br>
+    <span style='color:#666; font-size:1rem;'>
+    Get clarity on your stocks—no matter your experience level.
+    </span>
+</div>
+""", unsafe_allow_html=True)
 
-st.markdown(
-    "<div style='font-size:1.5rem; font-family:EB Garamond,serif; margin-bottom:0.7em; text-align:center;'>"
-    "Level up your investing with <b>QuantPilot</b>: advanced analytics, real-time visualizations, and actionable insights.<br>"
-    "Transform complexity into clarity and make every decision count—no matter your experience level."
-    "</div>",
-    unsafe_allow_html=True
-)
-
-# --- User selects multiple tickers and date range
-with st.expander("Stock Data & Analysis", expanded=True):
+# ---- User Inputs ----
+with st.expander("Start Here: Select Tickers and Date Range", expanded=True):
     tickers = [
         t for t in st.text_input(
             "Enter one or more stock tickers (comma separated, e.g., AAPL, TSLA, MSFT):",
             value="AAPL, TSLA"
         ).upper().replace(" ", "").split(",") if t
     ]
-
     col1, col2, col3 = st.columns([2, 2, 2])
     with col1:
         start = st.date_input("Start date", pd.to_datetime("2023-01-01"))
@@ -75,104 +78,165 @@ with st.expander("Stock Data & Analysis", expanded=True):
         end = st.date_input("End date", pd.to_datetime("today"))
     with col3:
         interval = st.selectbox("Interval", ["1d", "1wk", "1mo"], index=0)
+    st.caption("💡 You can add more tickers separated by commas!")
 
-    indicators = []
+# ---- Technical Indicator Selection ----
+with st.expander("Customize: Technical Indicators", expanded=True):
     if TA_INSTALLED:
         indicators = st.multiselect(
-            "Technical Indicators (add to chart)",
-            ["RSI", "MACD", "EMA20", "SMA50"],
-            default=["RSI"]
+            "Choose which indicators to add to your charts:",
+            ["RSI", "MACD", "EMA20", "SMA50", "BB", "VWAP", "ATR", "EMA100"],
+            default=["RSI", "BB", "MA20", "MA50"]
         )
     else:
-        st.info("Install `pandas_ta` to unlock technical indicators (pip install pandas_ta).")
+        indicators = []
+        st.info("Install `pandas_ta` for more technical indicators (pip install pandas_ta).")
 
-    if st.button("Get Data & Analyze", key="getdata"):
-        for ticker in tickers:
-            if not ticker:
-                continue
-            st.header(f"Stock: {ticker}")
+# ---- Explanations Section ----
+st.markdown("<h2 style='margin-top:1.7em;'>📚 Indicator Explanations</h2>", unsafe_allow_html=True)
+st.markdown("""
+- <b>Bollinger Bands (BB Upper/Lower):</b> These bands show potential overbought (upper) and oversold (lower) zones based on volatility. When price touches the upper band, the stock may be overbought; when it touches the lower band, it may be oversold.
+- <b>Moving Average 20 (MA20) / 50 (MA50):</b> These smooth out price data to show trend direction. MA20 responds faster to price changes; MA50 is slower and shows longer-term trend.
+- <b>RSI (Relative Strength Index):</b> Measures momentum on a scale from 0 to 100. Above 70 means a stock might be overbought; below 30, oversold.
+- <b>MACD (Moving Average Convergence Divergence):</b> Follows trends and momentum. When MACD crosses above its signal line, it can be a bullish sign; if it crosses below, bearish.
+- <b>VWAP (Volume Weighted Average Price):</b> Shows the average price weighted by volume; often used by institutional traders for entries/exits.
+- <b>ATR (Average True Range):</b> Measures volatility. Higher ATR means more price movement (risk).
+- <b>EMA100:</b> The Exponential Moving Average over 100 periods, which reacts quickly to price and shows long-term trend.
+""", unsafe_allow_html=True)
 
-            try:
-                data = yf.download(ticker, start=start, end=end, interval=interval)
-            except Exception as e:
-                st.error(f"Error fetching {ticker}: {str(e)}")
-                continue
+# ---- Analysis Section ----
+st.markdown("<h2 style='margin-top:2em;'>🔎 Stock Data & Analysis</h2>", unsafe_allow_html=True)
+if st.button("Get Data & Analyze", key="getdata"):
+    for ticker in tickers:
+        if not ticker:
+            continue
+        st.markdown(f"<h3 style='margin-top:1.5em; margin-bottom:0.4em;'>{ticker}</h3>", unsafe_allow_html=True)
+        try:
+            data = yf.download(ticker, start=start, end=end, interval=interval)
+        except Exception as e:
+            st.error(f"Error fetching {ticker}: {str(e)}")
+            continue
 
-            if not data.empty:
-                # Calculate indicators if pandas_ta is installed
-                if TA_INSTALLED:
-                    if "RSI" in indicators:
-                        data['RSI'] = ta.rsi(data['Close'], length=14)
-                    if "EMA20" in indicators:
-                        data['EMA20'] = ta.ema(data['Close'], length=20)
-                    if "SMA50" in indicators:
-                        data['SMA50'] = ta.sma(data['Close'], length=50)
-                    if "MACD" in indicators:
-                        macd = ta.macd(data['Close'])
-                        data = pd.concat([data, macd], axis=1)
-                # Chart
-                fig = px.line(data, x=data.index, y=["Close"], title=f"{ticker} Closing Price", labels={"value": "Price"})
-                # Add indicators to plotly chart if present
-                if TA_INSTALLED:
-                    for ind in indicators:
-                        if ind in data.columns:
-                            fig.add_scatter(x=data.index, y=data[ind], mode="lines", name=ind)
-                        if ind == "MACD" and "MACD_12_26_9" in data.columns:
-                            fig.add_scatter(x=data.index, y=data["MACD_12_26_9"], mode="lines", name="MACD")
-
-                st.plotly_chart(fig, use_container_width=True)
-
-                # Show metrics
-                st.subheader("Key Stats")
-                st.write(f"**Latest Close:** ${data['Close'].iloc[-1]:.2f}")
-                st.write(f"**Volume:** {data['Volume'].iloc[-1]:,.0f}")
-                st.write(f"**High (period):** ${data['High'].max():.2f}")
-                st.write(f"**Low (period):** ${data['Low'].min():.2f}")
-                st.write(f"**Total Trading Days:** {len(data)}")
-
-                # Download CSV
-                csv = data.to_csv().encode()
-                st.download_button(
-                    label="Download data as CSV",
-                    data=csv,
-                    file_name=f"{ticker}_{start}_{end}.csv",
-                    mime="text/csv",
-                )
-
-                # --- AI Advice Section (simple logic)
-                st.subheader("🤖 AI Advice")
-                mean_close = data['Close'].mean()
-                latest_close = data['Close'].iloc[-1]
-                rsi_val = data['RSI'].iloc[-1] if TA_INSTALLED and "RSI" in data.columns else None
-
-                advice = []
-                if latest_close > mean_close:
-                    advice.append("The stock is trading **above** its average for this period.")
-                else:
-                    advice.append("The stock is trading **below** its average for this period.")
-                if rsi_val is not None:
-                    if rsi_val > 70:
-                        advice.append("RSI suggests the stock is **overbought**. Be cautious.")
-                    elif rsi_val < 30:
-                        advice.append("RSI suggests the stock is **oversold**. Could be an opportunity.")
-                    else:
-                        advice.append("RSI is in a neutral range.")
-
-                st.markdown(" ".join(advice))
-                st.caption("(*AI advice is a simple rule-based demo. Install OpenAI for enhanced AI insights!*)")
-
+        if not data.empty:
+            # Calculate indicators
+            if TA_INSTALLED:
+                if "RSI" in indicators:
+                    data['RSI'] = ta.rsi(data['Close'], length=14)
+                if "EMA20" in indicators or "MA20" in indicators:
+                    data['EMA20'] = ta.ema(data['Close'], length=20)
+                if "SMA50" in indicators or "MA50" in indicators:
+                    data['SMA50'] = ta.sma(data['Close'], length=50)
+                if "MACD" in indicators:
+                    macd = ta.macd(data['Close'])
+                    data = pd.concat([data, macd], axis=1)
+                if "BB" in indicators:
+                    bb = ta.bbands(data['Close'])
+                    data = pd.concat([data, bb], axis=1)
+                if "VWAP" in indicators:
+                    data['VWAP'] = ta.vwap(data['High'], data['Low'], data['Close'], data['Volume'])
+                if "ATR" in indicators:
+                    data['ATR'] = ta.atr(data['High'], data['Low'], data['Close'])
+                if "EMA100" in indicators:
+                    data['EMA100'] = ta.ema(data['Close'], length=100)
             else:
-                st.error("No data found. Please check the ticker or date range.")
+                # Minimal built-in indicators if pandas_ta is missing
+                data['MA20'] = data['Close'].rolling(window=20).mean()
+                data['MA50'] = data['Close'].rolling(window=50).mean()
 
+            # ---- Chart Section ----
+            st.markdown("<h4>📊 Price Chart & Indicators</h4>", unsafe_allow_html=True)
+            chart_cols = ["Close"]
+            if TA_INSTALLED:
+                for ind in ["EMA20", "SMA50", "EMA100", "VWAP"]:
+                    if ind in data.columns:
+                        chart_cols.append(ind)
+                if "BB" in indicators and "BBL_5_2.0" in data.columns and "BBU_5_2.0" in data.columns:
+                    chart_cols += ["BBL_5_2.0", "BBU_5_2.0"]
+            else:
+                chart_cols += [col for col in ["MA20", "MA50"] if col in data.columns]
+            fig = px.line(data, x=data.index, y=chart_cols, title=f"{ticker} Closing Price & Indicators", labels={"value": "Price"})
+            st.plotly_chart(fig, use_container_width=True)
+
+            # ---- RSI Chart ----
+            if "RSI" in data.columns:
+                st.markdown("<h4>📉 RSI (Momentum)</h4>", unsafe_allow_html=True)
+                st.line_chart(data['RSI'])
+
+            # ---- MACD Chart ----
+            if "MACD_12_26_9" in data.columns and "MACDs_12_26_9" in data.columns:
+                st.markdown("<h4>📈 MACD</h4>", unsafe_allow_html=True)
+                st.line_chart(data[["MACD_12_26_9", "MACDs_12_26_9"]])
+
+            # ---- Volatility Chart (ATR) ----
+            if "ATR" in data.columns:
+                st.markdown("<h4>📊 ATR (Volatility)</h4>", unsafe_allow_html=True)
+                st.line_chart(data['ATR'])
+
+            # ---- Key Stats ----
+            st.markdown("<h4>📋 Key Stats for this Period</h4>", unsafe_allow_html=True)
+            st.write(f"**Latest Close:** ${data['Close'].iloc[-1]:.2f}")
+            st.write(f"**Volume:** {data['Volume'].iloc[-1]:,.0f}")
+            st.write(f"**High (period):** ${data['High'].max():.2f}")
+            st.write(f"**Low (period):** ${data['Low'].min():.2f}")
+            st.write(f"**Total Trading Days:** {len(data)}")
+
+            st.download_button(
+                label="Download data as CSV",
+                data=data.to_csv().encode(),
+                file_name=f"{ticker}_{start}_{end}.csv",
+                mime="text/csv",
+            )
+
+            # ---- Simple "AI-Powered" Trading Suggestion ----
+            st.markdown("<h4>🤖 AI-Powered Trading Suggestion</h4>", unsafe_allow_html=True)
+            mean_close = data['Close'].mean()
+            latest_close = data['Close'].iloc[-1]
+            rsi_val = data['RSI'].iloc[-1] if "RSI" in data.columns else None
+            macd_val = data['MACD_12_26_9'].iloc[-1] if "MACD_12_26_9" in data.columns else None
+            bb_upper = data['BBU_5_2.0'].iloc[-1] if "BBU_5_2.0" in data.columns else None
+            bb_lower = data['BBL_5_2.0'].iloc[-1] if "BBL_5_2.0" in data.columns else None
+
+            suggestion = []
+            if latest_close > mean_close:
+                suggestion.append("The current price is **above** its average—bullish trend.")
+            else:
+                suggestion.append("The current price is **below** its average—watch for reversals.")
+
+            if rsi_val is not None:
+                if rsi_val > 70:
+                    suggestion.append("RSI suggests the stock is **overbought**. Caution: may pull back soon.")
+                elif rsi_val < 30:
+                    suggestion.append("RSI suggests the stock is **oversold**. There could be a rebound opportunity.")
+                else:
+                    suggestion.append("RSI is in a neutral range.")
+
+            if macd_val is not None:
+                if macd_val > 0:
+                    suggestion.append("MACD is positive: momentum is to the upside.")
+                else:
+                    suggestion.append("MACD is negative: momentum leans bearish.")
+
+            if bb_upper is not None and latest_close >= bb_upper:
+                suggestion.append("Price is touching the **upper Bollinger Band** (potential overbought).")
+            if bb_lower is not None and latest_close <= bb_lower:
+                suggestion.append("Price is touching the **lower Bollinger Band** (potential oversold).")
+
+            st.markdown(" ".join(suggestion))
+            st.caption("(*These suggestions are rule-based and for educational purposes. Always research thoroughly before investing!*)")
+
+        else:
+            st.error("No data found. Please check the ticker or date range.")
+
+# ---- About Section ----
 with st.expander("About QuantPilot"):
     st.markdown("""
-    **QuantPilot** empowers investors with:
-    - Advanced analytics and interactive, real-time charts.
-    - Technical indicators.
-    - Clean, readable, and beautiful design.
-    - Downloadable data for your own research.
+    <b>QuantPilot</b> empowers investors with:
+    - Beautiful, interactive charts
+    - Multiple technical indicators
+    - Downloadable data
+    - Clear, plain-English insights
     - Multi-ticker support!
-    """)
+    """, unsafe_allow_html=True)
     st.markdown("""
     <div style="text-align:center; font-family:'EB Garamond',serif; font-size:1.11rem; color:#888;">
         &copy; 2025 QuantPilot. All rights reserved.
