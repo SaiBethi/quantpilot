@@ -334,14 +334,18 @@ if st.session_state["data_loaded"]:
                 unsafe_allow_html=True
             )
 
-            # Provide a contextual threshold for capital/shares
+            # Provide a contextual threshold for capital/shares w/ Garamond style
             min_capital = max(100, latest_close) * 2  # at least two shares
             capital_help = f"(Recommended: Enter at least ${min_capital:.2f} for meaningful allocation. Each share ≈ ${latest_close:.2f})"
             shares_help = f"(Recommended: Enter at least 2 shares for visible allocation. Each share ≈ ${latest_close:.2f})"
 
             allocation_block = ""
             if verdict == "BUY":
-                capital = st.number_input(f"Your available capital $ {capital_help}", min_value=0.0, step=100.0, key=f"capital_{ticker}")
+                st.markdown(
+                    f"<span style='font-family:EB Garamond,serif; font-size:1.02em; margin-bottom:0.1em; display:block;'>{capital_help}</span>",
+                    unsafe_allow_html=True
+                )
+                capital = st.number_input("Your available capital ($):", min_value=0.0, step=100.0, key=f"capital_{ticker}")
                 if capital >= latest_close * 2:
                     safe_num = int((capital * safe_pct) // latest_close)
                     risky_num = int((capital * risky_pct) // latest_close)
@@ -352,7 +356,11 @@ if st.session_state["data_loaded"]:
                 else:
                     allocation_block = f"Enter at least ${min_capital:.2f} capital to see recommended shares to buy."
             elif verdict == "SELL":
-                shares_owned = st.number_input(f"Your number of shares owned {shares_help}", min_value=0, step=1, key=f"shares_{ticker}")
+                st.markdown(
+                    f"<span style='font-family:EB Garamond,serif; font-size:1.02em; margin-bottom:0.1em; display:block;'>{shares_help}</span>",
+                    unsafe_allow_html=True
+                )
+                shares_owned = st.number_input("Your number of shares owned:", min_value=0, step=1, key=f"shares_{ticker}")
                 if shares_owned >= 2:
                     safe_num = int(shares_owned * safe_pct)
                     risky_num = int(shares_owned * risky_pct)
@@ -363,7 +371,11 @@ if st.session_state["data_loaded"]:
                 else:
                     allocation_block = f"Enter at least 2 shares owned to see recommended shares to sell."
             else:  # HOLD or unclear
-                shares_owned = st.number_input(f"Your number of shares owned {shares_help}", min_value=0, step=1, key=f"shares_{ticker}")
+                st.markdown(
+                    f"<span style='font-family:EB Garamond,serif; font-size:1.02em; margin-bottom:0.1em; display:block;'>{shares_help}</span>",
+                    unsafe_allow_html=True
+                )
+                shares_owned = st.number_input("Your number of shares owned:", min_value=0, step=1, key=f"shares_{ticker}")
                 if shares_owned >= 2:
                     safe_num = int(shares_owned * safe_pct)
                     risky_num = int(shares_owned * risky_pct)
