@@ -10,9 +10,8 @@ try:
 except ImportError:
     TA_INSTALLED = False
 
+# EB Garamond and style
 st.set_page_config(page_title="QuantPilot: All-in-One Dashboard", layout="wide")
-
-# ---- Global Styling: EB Garamond Everywhere ----
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
@@ -63,8 +62,8 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ---- User Inputs ----
-with st.expander("Start Here: Select Tickers and Date Range", expanded=True):
+# ---- 1. User Inputs ----
+with st.expander("① Start Here: Select Tickers and Date Range", expanded=True):
     tickers = [
         t for t in st.text_input(
             "Enter one or more stock tickers (comma separated, e.g., AAPL, TSLA, MSFT):",
@@ -80,8 +79,8 @@ with st.expander("Start Here: Select Tickers and Date Range", expanded=True):
         interval = st.selectbox("Interval", ["1d", "1wk", "1mo"], index=0)
     st.caption("💡 You can add more tickers separated by commas!")
 
-# ---- Technical Indicator Selection ----
-with st.expander("Customize: Technical Indicators", expanded=True):
+# ---- 2. Indicator Selection ----
+with st.expander("② Customize: Technical Indicators", expanded=True):
     if TA_INSTALLED:
         indicators = st.multiselect(
             "Choose which indicators to add to your charts:",
@@ -92,20 +91,22 @@ with st.expander("Customize: Technical Indicators", expanded=True):
         indicators = []
         st.info("Install `pandas_ta` for more technical indicators (pip install pandas_ta).")
 
-# ---- Explanations Section ----
-st.markdown("<h2 style='margin-top:1.7em;'>📚 Indicator Explanations</h2>", unsafe_allow_html=True)
+# ---- 3. Explanations Section ----
+st.markdown("<h2 style='margin-top:1.7em;'>③ Indicator Explanations</h2>", unsafe_allow_html=True)
 st.markdown("""
-- <b>Bollinger Bands (BB Upper/Lower):</b> These bands show potential overbought (upper) and oversold (lower) zones based on volatility. When price touches the upper band, the stock may be overbought; when it touches the lower band, it may be oversold.
-- <b>Moving Average 20 (MA20) / 50 (MA50):</b> These smooth out price data to show trend direction. MA20 responds faster to price changes; MA50 is slower and shows longer-term trend.
-- <b>RSI (Relative Strength Index):</b> Measures momentum on a scale from 0 to 100. Above 70 means a stock might be overbought; below 30, oversold.
-- <b>MACD (Moving Average Convergence Divergence):</b> Follows trends and momentum. When MACD crosses above its signal line, it can be a bullish sign; if it crosses below, bearish.
-- <b>VWAP (Volume Weighted Average Price):</b> Shows the average price weighted by volume; often used by institutional traders for entries/exits.
-- <b>ATR (Average True Range):</b> Measures volatility. Higher ATR means more price movement (risk).
-- <b>EMA100:</b> The Exponential Moving Average over 100 periods, which reacts quickly to price and shows long-term trend.
+<ul style='font-size:1.08em;'>
+<li><b>Bollinger Bands (BB Upper/Lower):</b> Show likely overbought (upper) and oversold (lower) price levels, based on volatility.</li>
+<li><b>MA20 & MA50:</b> Moving averages that smooth price. MA20 is short-term, MA50 is longer-term.</li>
+<li><b>EMA20, EMA100:</b> Like moving averages but react more quickly to price changes. EMA100 is a very long-term trendline.</li>
+<li><b>RSI (Relative Strength Index):</b> Measures momentum (0-100). Over 70: overbought; under 30: oversold.</li>
+<li><b>MACD (Moving Average Convergence Divergence):</b> Tracks momentum and trend shifts. Crossovers are key signals.</li>
+<li><b>VWAP (Volume Weighted Average Price):</b> Average price weighted by volume; shows the “fair” market price.</li>
+<li><b>ATR (Average True Range):</b> Indicates volatility (how much price moves up/down).</li>
+</ul>
 """, unsafe_allow_html=True)
 
-# ---- Analysis Section ----
-st.markdown("<h2 style='margin-top:2em;'>🔎 Stock Data & Analysis</h2>", unsafe_allow_html=True)
+# ---- 4. Analysis Section ----
+st.markdown("<h2 style='margin-top:2em;'>④ Stock Data & Analysis</h2>", unsafe_allow_html=True)
 if st.button("Get Data & Analyze", key="getdata"):
     for ticker in tickers:
         if not ticker:
@@ -143,12 +144,10 @@ if st.button("Get Data & Analyze", key="getdata"):
                 data['MA20'] = data['Close'].rolling(window=20).mean()
                 data['MA50'] = data['Close'].rolling(window=50).mean()
 
-            # ---- Chart Section ----
+            # ---- Price Chart Section ----
             st.markdown("<h4>📊 Price Chart & Indicators</h4>", unsafe_allow_html=True)
-            # Only plot columns that exist and contain at least one non-NaN value
             possible_cols = ["Close", "EMA20", "SMA50", "EMA100", "VWAP", "BBL_5_2.0", "BBU_5_2.0", "MA20", "MA50"]
             chart_cols = [col for col in possible_cols if col in data.columns and data[col].notna().any()]
-
             if chart_cols:
                 fig = px.line(data, x=data.index, y=chart_cols, title=f"{ticker} Closing Price & Indicators", labels={"value": "Price"})
                 st.plotly_chart(fig, use_container_width=True)
@@ -165,7 +164,7 @@ if st.button("Get Data & Analyze", key="getdata"):
                 st.markdown("<h4>📈 MACD</h4>", unsafe_allow_html=True)
                 st.line_chart(data[["MACD_12_26_9", "MACDs_12_26_9"]])
 
-            # ---- Volatility Chart (ATR) ----
+            # ---- ATR Chart ----
             if "ATR" in data.columns and data["ATR"].notna().any():
                 st.markdown("<h4>📊 ATR (Volatility)</h4>", unsafe_allow_html=True)
                 st.line_chart(data['ATR'])
