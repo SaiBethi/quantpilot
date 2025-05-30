@@ -10,8 +10,9 @@ try:
 except ImportError:
     TA_INSTALLED = False
 
-# EB Garamond and style
 st.set_page_config(page_title="QuantPilot: All-in-One Dashboard", layout="wide")
+
+# ---- EB Garamond and style ----
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
@@ -188,10 +189,10 @@ if st.button("Get Data & Analyze", key="getdata"):
             st.markdown("<h4>🤖 AI-Powered Trading Suggestion</h4>", unsafe_allow_html=True)
             mean_close = data['Close'].mean()
             latest_close = data['Close'].iloc[-1]
-            rsi_val = data['RSI'].iloc[-1] if "RSI" in data.columns and data["RSI"].notna().any() else None
-            macd_val = data['MACD_12_26_9'].iloc[-1] if "MACD_12_26_9" in data.columns and data["MACD_12_26_9"].notna().any() else None
-            bb_upper = data['BBU_5_2.0'].iloc[-1] if "BBU_5_2.0" in data.columns and data["BBU_5_2.0"].notna().any() else None
-            bb_lower = data['BBL_5_2.0'].iloc[-1] if "BBL_5_2.0" in data.columns and data["BBL_5_2.0"].notna().any() else None
+            rsi_val = data['RSI'].iloc[-1] if "RSI" in data.columns and not data['RSI'].empty else None
+            macd_val = data['MACD_12_26_9'].iloc[-1] if "MACD_12_26_9" in data.columns and not data['MACD_12_26_9'].empty else None
+            bb_upper = data['BBU_5_2.0'].iloc[-1] if "BBU_5_2.0" in data.columns and not data['BBU_5_2.0'].empty else None
+            bb_lower = data['BBL_5_2.0'].iloc[-1] if "BBL_5_2.0" in data.columns and not data['BBL_5_2.0'].empty else None
 
             suggestion = []
             if latest_close > mean_close:
@@ -199,7 +200,7 @@ if st.button("Get Data & Analyze", key="getdata"):
             else:
                 suggestion.append("The current price is **below** its average—watch for reversals.")
 
-            if rsi_val is not None:
+            if rsi_val is not None and not pd.isna(rsi_val):
                 if rsi_val > 70:
                     suggestion.append("RSI suggests the stock is **overbought**. Caution: may pull back soon.")
                 elif rsi_val < 30:
@@ -207,15 +208,15 @@ if st.button("Get Data & Analyze", key="getdata"):
                 else:
                     suggestion.append("RSI is in a neutral range.")
 
-            if macd_val is not None:
+            if macd_val is not None and not pd.isna(macd_val):
                 if macd_val > 0:
                     suggestion.append("MACD is positive: momentum is to the upside.")
                 else:
                     suggestion.append("MACD is negative: momentum leans bearish.")
 
-            if bb_upper is not None and latest_close >= bb_upper:
+            if bb_upper is not None and not pd.isna(bb_upper) and latest_close >= bb_upper:
                 suggestion.append("Price is touching the **upper Bollinger Band** (potential overbought).")
-            if bb_lower is not None and latest_close <= bb_lower:
+            if bb_lower is not None and not pd.isna(bb_lower) and latest_close <= bb_lower:
                 suggestion.append("Price is touching the **lower Bollinger Band** (potential oversold).")
 
             st.markdown(" ".join(suggestion))
