@@ -6,7 +6,7 @@ import numpy as np
 
 st.set_page_config(page_title="QuantPilot: All-in-One Dashboard", layout="wide")
 
-# --- EB Garamond & Dark BG UI ---
+# --- EB Garamond & Dark BG UI with white inputs and labels ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
@@ -26,6 +26,29 @@ st.markdown("""
         background: #181818;
         font-family: 'EB Garamond', serif !important;
         color: #fff !important;
+    }
+    /* Make all labels, placeholders, and input text white */
+    label, .stTextInput label, .stNumberInput label, .stDateInput label, .stSelectbox label, .st-expanderHeader {
+        color: #fff !important;
+        font-family: 'EB Garamond', serif !important;
+        font-size: 1.04em !important;
+    }
+    .stTextInput>div>input, .stNumberInput>div>input, .stDateInput>div>input {
+        background: #222 !important;
+        color: #fff !important;
+        border: 1.5px solid #444 !important;
+        font-family: 'EB Garamond', serif !important;
+    }
+    .stSelectbox>div {
+        background: #222 !important;
+        color: #fff !important;
+        border: 1.5px solid #444 !important;
+        font-family: 'EB Garamond', serif !important;
+    }
+    .stTextInput>div>input::placeholder {
+        color: #bbb !important;
+        opacity: 1 !important;
+        font-family: 'EB Garamond', serif !important;
     }
     .stButton>button, .stDownloadButton>button, .stSelectbox>div, .stTextInput>div>input, .stDateInput>div>input {
         font-family: 'EB Garamond', serif !important;
