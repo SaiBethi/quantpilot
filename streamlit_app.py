@@ -266,7 +266,6 @@ if st.button("Get Data & Analyze", key="getdata"):
             st.markdown("<div class='ai-suggestion'><b>🤖 AI-Powered Trading Suggestion</b><br>", unsafe_allow_html=True)
             ai_text = []
             ma_short, ma_med, ma_long = df['MA20'].dropna(), df['MA50'].dropna(), df['MA200'].dropna()
-            # --- Trend logic
             verdict, safe_pct, risky_pct = "HOLD", 0, 0
             if not ma_short.empty and not ma_med.empty and not ma_long.empty:
                 if latest_close > ma_short.iloc[-1] and latest_close > ma_med.iloc[-1] and latest_close > ma_long.iloc[-1]:
@@ -302,6 +301,7 @@ if st.button("Get Data & Analyze", key="getdata"):
                 ai_text.append("📉 Strong negative momentum today.")
             else:
                 ai_text.append("🔄 Momentum is neutral.")
+
             # --- Final verdict logic
             if verdict == "BUY":
                 safe_pct = 0.3
@@ -312,31 +312,54 @@ if st.button("Get Data & Analyze", key="getdata"):
             else:  # HOLD or unclear
                 safe_pct = 0.1
                 risky_pct = 0.2
+
             verdict_color = {"BUY": "#189c3a", "SELL": "#c12b2b", "HOLD": "#b29c5a"}
+            verdict_block = f"""
+            <div style='margin-top:0.8em; font-size:1.19em; font-family:EB Garamond,serif;'>
+                <b>Final Verdict: <span style='color:{verdict_color[verdict]}'>{verdict}</span></b>
+            </div>
+            """
+
+            # -- User input for allocation --
+            safe_num, risky_num = None, None
+            if verdict == "BUY":
+                capital = st.number_input("Enter your available capital ($):", min_value=0.0, step=100.0, key=f"capital_{ticker}")
+                if capital > 0:
+                    safe_num = int((capital * safe_pct) // latest_close)
+                    risky_num = int((capital * risky_pct) // latest_close)
+                    allocation_block = (
+                        f"<b>Safe allocation:</b> {int(safe_pct * 100)}% &rarr; <b>Buy <span style='color:#189c3a'>{safe_num}</span> shares</b><br>"
+                        f"<b>Risky allocation:</b> {int(risky_pct * 100)}% &rarr; <b>Buy <span style='color:#c12b2b'>{risky_num}</span> shares</b>"
+                    )
+                else:
+                    allocation_block = "Enter your available capital to see recommended shares to buy."
+            elif verdict == "SELL":
+                shares_owned = st.number_input("Enter your number of shares owned:", min_value=0, step=1, key=f"shares_{ticker}")
+                if shares_owned > 0:
+                    safe_num = int(shares_owned * safe_pct)
+                    risky_num = int(shares_owned * risky_pct)
+                    allocation_block = (
+                        f"<b>Safe allocation:</b> {int(safe_pct * 100)}% &rarr; <b>Sell <span style='color:#189c3a'>{safe_num}</span> shares</b><br>"
+                        f"<b>Risky allocation:</b> {int(risky_pct * 100)}% &rarr; <b>Sell <span style='color:#c12b2b'>{risky_num}</span> shares</b>"
+                    )
+                else:
+                    allocation_block = "Enter your shares owned to see recommended shares to sell."
+            else:  # HOLD
+                shares_owned = st.number_input("Enter your number of shares owned:", min_value=0, step=1, key=f"shares_{ticker}")
+                if shares_owned > 0:
+                    safe_num = int(shares_owned * safe_pct)
+                    risky_num = int(shares_owned * risky_pct)
+                    allocation_block = (
+                        f"<b>Safe allocation:</b> {int(safe_pct * 100)}% &rarr; <b>Hold <span style='color:#189c3a'>{shares_owned - safe_num}</span> shares</b><br>"
+                        f"<b>Risky allocation:</b> {int(risky_pct * 100)}% &rarr; <b>Hold <span style='color:#c12b2b'>{shares_owned - risky_num}</span> shares</b>"
+                    )
+                else:
+                    allocation_block = "Enter your shares owned to see recommended shares to hold."
+
             st.markdown(
-                f"<div style='margin-top:0.8em; font-size:1.18em;'><b>Final Verdict: "
-                f"<span style='color:{verdict_color[verdict]}'>{verdict}</span></b></div>"
-                f"<div style='font-size:1.08em; margin-top:0.2em;'>"
-                f"<b>Safe allocation:</b> {int(safe_pct * 100)}%<br>"
-                f"<b>Risky allocation:</b> {int(risky_pct * 100)}%</div>",
+                verdict_block +
+                f"<div style='font-size:1.09em; margin-top:0.23em; font-family:EB Garamond,serif;'>{allocation_block}</div>",
                 unsafe_allow_html=True
             )
-            st.markdown("<div style='margin-top:0.7em;'>" + "<br>".join(ai_text) + "</div></div>", unsafe_allow_html=True)
-            st.caption("(*These suggestions are rule-based and for educational purposes. Always research thoroughly before investing!*)")
-
-with st.expander("About QuantPilot"):
-    st.markdown("""
-    <b>QuantPilot</b> empowers investors with:
-    - Beautiful, interactive candlestick charts
-    - Moving averages (SMA & EMA)
-    - Volatility and momentum insights
-    - Volume data
-    - Downloadable CSVs
-    - Clear, plain-English insights
-    - Multi-ticker support!
-    """, unsafe_allow_html=True)
-    st.markdown("""
-    <div style="text-align:center; font-family:'EB Garamond',serif; font-size:1.11rem; color:#888;">
-        &copy; 2025 QuantPilot. All rights reserved.
-    </div>
-    """, unsafe_allow_html=True)
+            st.markdown("<div style='margin-top:0.7em; font-family:EB Garamond,serif;'>" + "<br>".join(ai_text) + "</div>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size:1.02em; color:#a08c64; font-family:EB Garamond,serif;'>(These suggestions are rule-based and for educational purposes. Always research thoroughly before investing!)</div>", unsafe_allow_html=True)
