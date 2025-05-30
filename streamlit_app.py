@@ -3,6 +3,7 @@ import yfinance as yf
 import pandas as pd
 import plotly.express as px
 
+# Optional: For technical indicators
 try:
     import pandas_ta as ta
     TA_INSTALLED = True
@@ -11,6 +12,7 @@ except ImportError:
 
 st.set_page_config(page_title="QuantPilot: All-in-One Dashboard", layout="wide")
 
+# ---- EB Garamond and style ----
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
@@ -141,7 +143,14 @@ if st.button("Get Data & Analyze", key="getdata"):
 
             st.markdown("<h4>📊 Price Chart & Indicators</h4>", unsafe_allow_html=True)
             possible_cols = ["Close", "EMA20", "SMA50", "EMA100", "VWAP", "BBL_5_2.0", "BBU_5_2.0", "MA20", "MA50"]
-            chart_cols = [col for col in possible_cols if col in data.columns and data[col].notna().any()]
+
+            # PERMANENT FIX: Only include columns that exist, are Series, and are not all NaN. No ambiguous truth values!
+            chart_cols = []
+            for col in possible_cols:
+                series = data.get(col, None)
+                if series is not None and isinstance(series, pd.Series) and series.notna().any():
+                    chart_cols.append(col)
+
             if len(chart_cols) > 0:
                 fig = px.line(data, x=data.index, y=chart_cols, title=f"{ticker} Closing Price & Indicators", labels={"value": "Price"})
                 st.plotly_chart(fig, use_container_width=True)
