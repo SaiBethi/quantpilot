@@ -1,17 +1,17 @@
 import streamlit as st
 st.set_page_config(page_title="QuantPilot: All-in-One Dashboard", layout="wide")
 
-# Now your other imports and Streamlit code can go below
 import yfinance as yf
 import pandas as pd
 import plotly.express as px
-import streamlit as st
 
 try:
     import pandas_ta as ta
     TA_INSTALLED = True
 except ImportError:
     TA_INSTALLED = False
+
+# The rest of your Streamlit code goes here...
 
 st.set_page_config(page_title="QuantPilot: All-in-One Dashboard", layout="wide")
 
