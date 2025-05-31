@@ -27,7 +27,6 @@ st.markdown("""
         font-family: 'EB Garamond', serif !important;
         color: #fff !important;
     }
-    /* All input labels and text white, with modern feel */
     label, .stTextInput label, .stNumberInput label, .stDateInput label, .stSelectbox label, .st-expanderHeader {
         color: #fff !important;
         font-family: 'EB Garamond', serif !important;
@@ -159,37 +158,38 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# --- Compact, fun indicator legend (Robinhood style) ---
-st.markdown("""
-<div class='indicator-card' style="margin-bottom:0.5em;">
-    <div class='section-header'>Quick Legend</div>
-    <div style="display:flex;flex-wrap:wrap;gap:1.0em;">
-      <span>📈 <b>Candle</b> = Day's price move</span>
-      <span>📊 <b>MAs</b> = Trend (20, 50, 100, 200)</span>
-      <span>⚡ <b>% Chg</b> = Momentum</span>
-      <span>🌪 <b>Volatility</b> = Risk</span>
-      <span>🔊 <b>Volume</b> = Activity</span>
-      <span>🤖 <b>AI</b> = Smart suggestion</span>
+# --- Robinhood-style compact legend (hidden by default, info button) ---
+with st.expander("📖 Show quick chart legend (what does everything mean?)"):
+    st.markdown("""
+    <div style="display:flex;flex-wrap:wrap;gap:1.0em;font-size:1.1em;">
+      <span>📈 <b>Candle</b>: Day's price movement</span>
+      <span>📊 <b>MAs</b>: Trend (20, 50, 100, 200)</span>
+      <span>⚡ <b>% Chg</b>: Momentum</span>
+      <span>🌪 <b>Volatility</b>: Risk</span>
+      <span>🔊 <b>Volume</b>: Trading Activity</span>
+      <span>🤖 <b>AI</b>: Smart suggestion</span>
     </div>
-</div>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 # --- Input: Ticker, Capital, and Date Range, as a "dashboard" ---
-dashboard_cols = st.columns([2, 2, 2, 2])
+dashboard_cols = st.columns([2, 2, 2])
 with dashboard_cols[0]:
     ticker = st.text_input("Stock Ticker", value="AAPL", max_chars=8)
 with dashboard_cols[1]:
     capital = st.number_input("Your Investment ($)", min_value=0.0, value=1000.0, step=100.0)
 with dashboard_cols[2]:
     interval = st.selectbox("Interval", ["1d", "1wk", "1mo"], index=0)
-with dashboard_cols[3]:
-    years = st.number_input("Years to Simulate", min_value=1, max_value=30, value=5, step=1)
+
+simulate = st.checkbox("Simulate future growth?", value=False)
+years = 5
+if simulate:
+    years = st.slider("Years to Simulate (for projection)", min_value=1, max_value=30, value=5, step=1)
 
 st.divider()
 
-# --- Robinhood-style card: key info + chart side by side
 if st.button("Go!", type="primary"):
-    df = yf.download(ticker, period=f"{years+1}y", interval=interval, auto_adjust=True)
+    period = f"{years+1}y" if simulate else "6mo"
+    df = yf.download(ticker, period=period, interval=interval, auto_adjust=True)
     if df.empty:
         st.error("No data found.")
     else:
@@ -203,10 +203,19 @@ if st.button("Go!", type="primary"):
         df["Volume"] = df["Volume"]
 
         last = df.iloc[-1]
-        start_price = df["Close"].iloc[0]
-        end_price = df["Close"].iloc[-1]
-        total_return = (end_price - start_price) / start_price
-        avg_annual_return = ((end_price/start_price)**(1/years))-1 if years > 0 else 0
+        # Use .item() if scalar, else float(), else "-"
+        def safe_fmt(val):
+            try:
+                if pd.isnull(val): return "-"
+                v = float(val)
+                return f"${v:,.2f}"
+            except Exception:
+                return "-"
+
+        start_price = float(df["Close"].iloc[0])
+        end_price = float(df["Close"].iloc[-1])
+        total_return = (end_price - start_price) / start_price if start_price else 0
+        avg_annual_return = ((end_price/start_price)**(1/years))-1 if simulate and years > 0 and start_price > 0 else 0
 
         # --- Robinhood-style summary card
         st.markdown(f"""
@@ -218,13 +227,13 @@ if st.button("Go!", type="primary"):
           </div>
           <div style='background:#18191d;border-radius:1.2em;padding:1.1em 1.5em;box-shadow:0 2px 8px #0003;border:1.5px solid #222;min-width:210px;'>
             <b>Total Return:</b> <span style="color:{'#1db954' if total_return>=0 else '#ff4c4c'};">{total_return*100:+.1f}%</span><br>
-            <b>Avg/Year:</b> <span style="color:{'#1db954' if avg_annual_return>=0 else '#ff4c4c'};">{avg_annual_return*100:+.1f}%</span><br>
-            <b>Volatility:</b> <span>{df['Volatility'].dropna().mean():.2f}</span>
+            {f'<b>Avg/Year:</b> <span style="color:{("#1db954" if avg_annual_return>=0 else "#ff4c4c")};">{avg_annual_return*100:+.1f}%</span><br>' if simulate else ''}
+            <b>Volatility:</b> <span>{df["Volatility"].dropna().mean():.2f}</span>
           </div>
           <div style='background:#18191d;border-radius:1.2em;padding:1.1em 1.5em;box-shadow:0 2px 8px #0003;border:1.5px solid #222;min-width:210px;'>
-            <b>20d MA:</b> ${last["MA20"]:.2f}<br>
-            <b>50d MA:</b> ${last["MA50"]:.2f}<br>
-            <b>200d MA:</b> ${last["MA200"]:.2f}
+            <b>20d MA:</b> {safe_fmt(last["MA20"])}<br>
+            <b>50d MA:</b> {safe_fmt(last["MA50"])}<br>
+            <b>200d MA:</b> {safe_fmt(last["MA200"])}
           </div>
         </div>
         """, unsafe_allow_html=True)
@@ -245,8 +254,8 @@ if st.button("Go!", type="primary"):
         )
         st.plotly_chart(chart, use_container_width=True)
 
-        # --- AI Suggestion Card + Investment Projection ---
-        st.markdown(f"<div class='ai-suggestion'><b>🤖 AI Suggestion & Projection</b><br>", unsafe_allow_html=True)
+        # --- AI Suggestion Card + Investment Projection (optional) ---
+        st.markdown(f"<div class='ai-suggestion'><b>🤖 AI Suggestion</b><br>", unsafe_allow_html=True)
         suggestion = "HOLD"
         color = "#ffe48a"
         if last["Close"] > last["MA20"] > last["MA50"]:
@@ -257,20 +266,21 @@ if st.button("Go!", type="primary"):
             color = "#ff4c4c"
         st.markdown(f"<b>Signal:</b> <span style='color:{color}'>{suggestion}</span>", unsafe_allow_html=True)
 
-        # Projected future value (using geometric mean of annual returns)
-        future_val = capital * ((1 + avg_annual_return) ** years)
-        st.markdown(f"""
-        <div style="margin-top:0.65em;font-size:1.09em;">
-            <b>If you invest <span style='color:#1db954;'>${capital:,.2f}</span> now and hold for <span style='color:#1db954;'>{years} years</span> at the avg return rate:</b><br>
-            <span style='font-size:1.25em;color:#ffe48a;'><b>Your money could become: ${future_val:,.2f}</b></span>
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown("""
-            <div style='font-size:0.99em;color:#bbb;margin-top:0.65em;'>
-                *This is a simple prediction using past average returns. Markets can change—invest thoughtfully!*
+        if simulate:
+            future_val = capital * ((1 + avg_annual_return) ** years) if avg_annual_return else capital
+            st.markdown(f"""
+            <div style="margin-top:0.65em;font-size:1.09em;">
+                <b>If you invest <span style='color:#1db954;'>${capital:,.2f}</span> now and hold for <span style='color:#1db954;'>{years} years</span> at the avg return rate:</b><br>
+                <span style='font-size:1.25em;color:#ffe48a;'><b>Your money could become: ${future_val:,.2f}</b></span>
             </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
+            st.markdown("""
+                <div style='font-size:0.99em;color:#bbb;margin-top:0.65em;'>
+                    *This is a simple prediction using past average returns. Markets can change—invest thoughtfully!*
+                </div>
+            """, unsafe_allow_html=True)
 
+# Fancy About section
 st.markdown("""
 <div style='
     font-family: "EB Garamond", serif; 
