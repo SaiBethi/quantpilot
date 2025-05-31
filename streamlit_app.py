@@ -4,85 +4,213 @@ import pandas as pd
 import plotly.graph_objects as go
 import numpy as np
 
-st.set_page_config(page_title="QuantPilot: Robinhood-Legend Style", layout="wide")
+st.set_page_config(page_title="QuantPilot: All-in-One Dashboard", layout="wide")
 
-# --- Style for Robinhood-like UI ---
+# --- EB Garamond & Dark BG UI with white inputs and labels ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
-    html, body, [class*="css"], .stApp { font-family: 'EB Garamond', serif !important; background: #101114 !important; color: #f9f9f9 !important;}
-    .block-container { background: #101114 !important; color: #fff !important; }
-    .summary-bar {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: flex-end;
-        justify-content:space-between;
-        background: #18191d;
-        border-radius: 1.1em;
-        box-shadow: 0 2px 10px #0002;
-        padding: 0.7em 2em 0.5em 2em;
-        margin-bottom: 1.1em;
+    html, body, [class*="css"], .stApp {
+        font-family: 'EB Garamond', serif !important;
+        background: #111 !important;
+        color: #fff !important;
+    }
+    .block-container {
+        background: #111 !important;
+        padding-top: 0.2rem !important;
+        padding-right: 2rem;
+        padding-left: 2rem;
+        color: #fff !important;
+    }
+    div[data-testid="stSidebar"], .stSidebar {
+        background: #181818;
+        font-family: 'EB Garamond', serif !important;
+        color: #fff !important;
+    }
+    label, .stTextInput label, .stNumberInput label, .stDateInput label, .stSelectbox label, .st-expanderHeader {
+        color: #fff !important;
+        font-family: 'EB Garamond', serif !important;
+        font-size: 1.04em !important;
+    }
+    .stTextInput>div>input, .stNumberInput>div>input, .stDateInput>div>input {
+        background: #222 !important;
+        color: #fff !important;
+        border: 1.5px solid #444 !important;
         font-family: 'EB Garamond', serif !important;
     }
-    .summary-main {
-        display: flex;
-        flex-direction: column;
-        flex: 1 1 250px;
+    .stSelectbox>div {
+        background: #222 !important;
+        color: #fff !important;
+        border: 1.5px solid #444 !important;
+        font-family: 'EB Garamond', serif !important;
     }
-    .summary-ticker {
-        font-size: 2.0em;
-        font-weight: 700;
-        color: #1db954;
+    .stTextInput>div>input::placeholder {
+        color: #bbb !important;
+        opacity: 1 !important;
+        font-family: 'EB Garamond', serif !important;
+    }
+    .stButton>button, .stDownloadButton>button, .stSelectbox>div, .stTextInput>div>input, .stDateInput>div>input {
+        font-family: 'EB Garamond', serif !important;
+        font-weight: 600;
+        font-size: 1.08rem !important;
+        border-radius: 10px;
+        background: #222 !important;
+        color: #fff !important;
+        border: 1.5px solid #444;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.18);
+        transition: background 0.16s, color 0.16s, box-shadow 0.18s;
+        margin-bottom: 0.5em;
+    }
+    .stButton>button:hover, .stDownloadButton>button:hover {
+        background: #333 !important;
+        color: #fff !important;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+    }
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'EB Garamond', serif !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.01em;
+        color: #fff !important;
+    }
+    .stMarkdown, .indicator-card, .ai-suggestion, .stat-table {
+        font-family: 'EB Garamond', serif !important;
+        color: #fff !important;
+    }
+    .indicator-card {
+        background: #191919 !important;
+        border-radius: 1em;
+        padding: 1.1em 1.5em;
+        margin: 0.7em 0 1.1em 0;
+        box-shadow: 0 2px 8px rgba(20,20,20,0.23);
+        border: 1.5px solid #333;
+        font-size: 1.13em;
+        color: #fff !important;
+    }
+    .ai-suggestion {
+        background: #1a1a1a !important;
+        border-radius: 1em;
+        padding: 1em 1.5em;
+        margin: 0.7em 0 1.3em 0;
+        box-shadow: 0 2px 8px rgba(40,40,40,0.19);
+        border: 1.5px solid #333;
+        font-size: 1.13em;
+        font-weight: 500;
+        color: #fff !important;
+    }
+    .section-header {
+        font-size: 1.75em !important;
+        margin-top: 1.1em !important;
+        margin-bottom: 0.6em !important;
+        font-family: 'EB Garamond', serif !important;
+        font-weight: 700 !important;
+        color: #fff !important;
         letter-spacing: 0.01em;
     }
-    .summary-price {
-        font-size: 1.2em;
-        font-weight: 600;
-        margin-top: -0.3em;
-        color: #eee;
+    .stat-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0.7em 0 1.3em 0;
+        font-size: 1.13em;
+        color: #fff !important;
     }
-    .summary-change-pos { color: #1db954; font-weight:600;}
-    .summary-change-neg { color: #ff4c4c; font-weight:600;}
-    .summary-vol { font-size: 0.95em; color:#aaa;}
-    .summary-suggestion {
-        font-size:1.15em; margin-top:0.3em; font-weight:600;
-        border-radius:0.7em;padding:0.2em 0.8em; background:#151917; display:inline-block;
+    .stat-table th, .stat-table td {
+        border: none;
+        text-align: left;
+        padding: 0.37em 1.3em 0.37em 0;
+        vertical-align: middle;
+        font-family: 'EB Garamond', serif !important;
+        color: #fff !important;
     }
-    .suggestion-buy { color:#13f87c;background:rgba(30,160,80,0.13);}
-    .suggestion-sell { color:#ff4c4c;background:rgba(180,40,40,0.09);}
-    .suggestion-hold { color:#ffe48a;background:rgba(150,130,30,0.11);}
-    .factor-row {display:flex;flex-wrap:wrap;gap:1.1em;margin-bottom:1.1em;}
-    .factor-card {
-        flex:1 1 170px; background:#171821; border-radius:0.9em; padding:0.75em 1.1em; 
-        box-shadow:0 2px 8px #0002; border-left:5px solid #222; font-size:1.09em; 
-        min-width:145px; max-width:260px;
+    .stat-table th {
+        color: #ffdc8f !important;
+        font-weight: 700;
+        background: none;
     }
-    .factor-title { font-size:0.95em; font-weight:600; color:#1db954;}
-    .factor-value { font-size:1.3em; font-weight:700; margin-top:0.07em;}
-    .factor-desc { font-size:0.95em; color:#aaa; margin-top:0.13em;}
-    .legend-list {font-size:1.07em;}
+    .stat-table td {
+        color: #fff !important;
+    }
+    header[data-testid="stHeader"] {
+        background: rgba(0,0,0,0) !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        visibility: hidden;
+        display: none;
+    }
+    .fun-legend {
+        font-size:1.07em;
+        color:#ffd700;
+        margin-bottom:0.2em;
+    }
     </style>
 """, unsafe_allow_html=True)
 
-# --- HEADER summary bar ---
-st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
-st.title("") # For spacing
+# Title and subtitle
+st.markdown("""
+<h1 style='text-align:center; font-size:2.1rem; margin-bottom:0.45em; margin-top:0.1em; color:#fff; font-family:EB Garamond,serif; font-weight:700;'>
+📈 QuantPilot: All-in-One Dashboard
+</h1>
+<div style='text-align:center; font-size:1.11rem; margin-bottom:1.1em; color:#eee; font-family:EB Garamond,serif;'>
+    Analytics, interactive charts, and easy-to-understand insights.<br>
+    <span style='font-size:1.00rem;'>Clarity for your stocks—no matter your experience level.</span>
+</div>
+""", unsafe_allow_html=True)
 
-# --- Inputs ---
-col0, col1, col2, col3 = st.columns([1.7,1.2,1.2,1.2])
-with col0:
-    ticker = st.text_input("Stock Ticker", value="AAPL", max_chars=8)
-with col1:
-    capital = st.number_input("Your Investment ($)", min_value=0.0, value=1000.0, step=100.0)
-with col2:
-    interval = st.selectbox("Interval", ["1d", "1wk", "1mo"], index=0)
-with col3:
-    simulate = st.checkbox("Simulate future growth?", value=False)
-    years = 5
-    if simulate:
-        years = st.slider("Years", 1, 30, 5, 1)
+# --- Toggleable fun legend ---
+with st.expander("📖 Quick Chart/Factor Legend (what do these mean?)"):
+    st.markdown("""
+    <div class="fun-legend">
+    📈 Candle: Day's price movement<br>
+    📊 MAs: Trend (20, 50, 100, 200)<br>
+    ⚡ % Chg: Momentum<br>
+    🌪 Volatility: Risk<br>
+    🔊 Volume: Trading Activity<br>
+    🤖 AI: Smart suggestion
+    </div>
+    """, unsafe_allow_html=True)
 
-st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
+if "data_loaded" not in st.session_state:
+    st.session_state["data_loaded"] = False
+
+# --- Simulation option ---
+simulate = st.checkbox("Simulate future growth/projection?", value=False)
+years = 5
+if simulate:
+    years = st.slider("Years to Simulate", 1, 30, 5, 1)
+
+with st.expander("① Start Here: Select Tickers and Date Range", expanded=True):
+    st.markdown(
+        "<div style='font-size:1.08em; color:#ffd700; font-family:EB Garamond,serif;'>"
+        "Enter tickers, pick your date range, and press <b>Get Data & Analyze</b>."
+        "</div>",
+        unsafe_allow_html=True
+    )
+    tickers = [
+        t for t in st.text_input(
+            "Enter one or more stock tickers (comma separated, e.g., AAPL, TSLA, MSFT):",
+            value="AAPL, TSLA"
+        ).upper().replace(" ", "").split(",") if t
+    ]
+    col1, col2, col3 = st.columns([2, 2, 2])
+    with col1:
+        start = st.date_input("Start date", pd.to_datetime("2023-01-01"))
+    with col2:
+        end = st.date_input("End date", pd.to_datetime("today"))
+    with col3:
+        interval = st.selectbox("Interval", ["1d", "1wk", "1mo"], index=0)
+
+if st.button("Get Data & Analyze", key="getdata"):
+    st.session_state["data_loaded"] = True
+    st.session_state["stock_data"] = yf.download(
+        tickers, start=start, end=end, interval=interval, group_by='ticker', auto_adjust=True
+    )
+    st.session_state["tickers"] = tickers
+    st.session_state["start"] = start
+    st.session_state["end"] = end
+    st.session_state["interval"] = interval
+
+st.markdown("<div class='indicator-card'><span class='section-header'>② Indicator Explanations</span><span style='font-size:1.04em;color:#ffd700;'>Hover over icons for quick info. Click above for the full legend!</span></div>", unsafe_allow_html=True)
+
+st.markdown("<span class='section-header'>③ Stock Data & Analysis</span>", unsafe_allow_html=True)
 
 def safe_number(val):
     """Return a float if val is a Series or single value, else '-' for NaN or errors."""
@@ -101,173 +229,214 @@ def safe_fmt(val, prefix="$"):
         return "-"
     return f"{prefix}{v:,.2f}"
 
-def pct_fmt(val):
-    v = safe_number(val)
-    if v == "-":
-        return "-"
-    return f"{v:+.2f}%"
-
-if st.button("Show Analysis", type="primary"):
-    period = f"{years+1}y" if simulate else "9mo"
-    df = yf.download(ticker, period=period, interval=interval, auto_adjust=True)
-    if df.empty or len(df) < 30:
-        st.error("No data found or not enough data for analysis.")
+if st.session_state["data_loaded"]:
+    data = st.session_state["stock_data"]
+    tickers = st.session_state["tickers"]
+    start = st.session_state["start"]
+    end = st.session_state["end"]
+    interval = st.session_state["interval"]
+    if data.empty:
+        st.error("No data found for these tickers in the selected date range.")
+        st.session_state["data_loaded"] = False
     else:
-        # ---- Compute indicators
-        df["MA20"] = df["Close"].rolling(20).mean()
-        df["MA50"] = df["Close"].rolling(50).mean()
-        df["MA200"] = df["Close"].rolling(200).mean()
-        df["%chg"] = df["Close"].pct_change()*100
-        df["Volatility"] = df["Close"].rolling(20).std()
-        df["Momentum"] = df["%chg"].rolling(5).mean()
-        df["Volume"] = df["Volume"]
+        if isinstance(data.columns, pd.MultiIndex):
+            data.columns = ["_".join([str(i) for i in col if i]) for col in data.columns.values]
+        for ticker in tickers:
+            st.markdown(
+                f"<h3 style='margin-top:1.5em; margin-bottom:0.4em; font-family:EB Garamond,serif; color:#fff;'>{ticker}</h3>",
+                unsafe_allow_html=True
+            )
+            close_col = f"Close_{ticker}" if f"Close_{ticker}" in data.columns else f"{ticker}_Close"
+            open_col = f"Open_{ticker}" if f"Open_{ticker}" in data.columns else f"{ticker}_Open"
+            high_col = f"High_{ticker}" if f"High_{ticker}" in data.columns else f"{ticker}_High"
+            low_col = f"Low_{ticker}" if f"Low_{ticker}" in data.columns else f"{ticker}_Low"
+            vol_col = f"Volume_{ticker}" if f"Volume_{ticker}" in data.columns else f"{ticker}_Volume"
 
-        last = df.iloc[[-1]].squeeze()
-        safe_close = safe_fmt(last["Close"])
-        safe_chg = safe_number(last["%chg"])
-        safe_vol = safe_number(last["Volume"])
-        safe_MA20 = safe_fmt(last["MA20"])
-        safe_MA50 = safe_fmt(last["MA50"])
-        safe_MA200 = safe_fmt(last["MA200"])
+            if close_col not in data.columns:
+                st.warning(f"No data for {ticker}.")
+                continue
 
-        start_price = safe_number(df["Close"].iloc[0])
-        end_price = safe_number(df["Close"].iloc[-1])
-        total_return = ((end_price - start_price) / start_price) if start_price not in ["-", 0] else 0
-        avg_annual_return = ((end_price/start_price)**(1/years))-1 if simulate and years > 0 and start_price not in ["-", 0] else 0
+            df = data[[c for c in [open_col, close_col, high_col, low_col, vol_col] if c in data.columns]].copy()
 
-        # --- AI suggestion (BUY/SELL/HOLD) ---
-        suggestion = "HOLD"
-        sugg_color_class = "suggestion-hold"
-        if safe_number(last["Close"]) != "-" and safe_number(last["MA20"]) != "-" and safe_number(last["MA50"]) != "-":
-            if safe_number(last["Close"]) > safe_number(last["MA20"]) > safe_number(last["MA50"]):
-                suggestion = "BUY"
-                sugg_color_class = "suggestion-buy"
-            elif safe_number(last["Close"]) < safe_number(last["MA20"]) < safe_number(last["MA50"]):
-                suggestion = "SELL"
-                sugg_color_class = "suggestion-sell"
+            # --- Moving Averages ---
+            df['MA20'] = df[close_col].rolling(window=20).mean()
+            df['MA50'] = df[close_col].rolling(window=50).mean()
+            df['MA100'] = df[close_col].rolling(window=100).mean()
+            df['MA200'] = df[close_col].rolling(window=200).mean()
+            df['EMA20'] = df[close_col].ewm(span=20, adjust=False).mean()
+            df['EMA50'] = df[close_col].ewm(span=50, adjust=False).mean()
+            df['EMA100'] = df[close_col].ewm(span=100, adjust=False).mean()
+            df['EMA200'] = df[close_col].ewm(span=200, adjust=False).mean()
+            # --- Daily % Change (Momentum) ---
+            df['Daily % Change'] = df[close_col].pct_change()*100
+            # --- Volatility (20-day rolling std) ---
+            df['Volatility (20d)'] = df[close_col].rolling(window=20).std()
 
-        # --- SUMMARY BAR (Robinhood style) ---
-        chg_color_cls = "summary-change-pos" if safe_chg != "-" and safe_chg > 0 else "summary-change-neg"
-        st.markdown(f"""
-        <div class="summary-bar">
-          <div class="summary-main">
-            <span class="summary-ticker">{ticker.upper()}</span>
-            <span class="summary-price">{safe_close} <span class="{chg_color_cls}">({pct_fmt(last['%chg'])})</span></span>
-            <span class="summary-vol">Volume: {int(safe_vol) if safe_vol!='-' else '-'}</span>
-          </div>
-          <div class="summary-suggestion {sugg_color_class}"><b>{suggestion}</b> (AI Signal)</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # --- FACTOR CARDS ---
-        st.markdown("""
-        <div class="factor-row">
-            <div class="factor-card">
-                <div class="factor-title">📈 Candle</div>
-                <div class="factor-value">{price}</div>
-                <div class="factor-desc">Last price</div>
-            </div>
-            <div class="factor-card">
-                <div class="factor-title">📊 20d MA</div>
-                <div class="factor-value">{ma20}</div>
-                <div class="factor-desc">Short trend</div>
-            </div>
-            <div class="factor-card">
-                <div class="factor-title">📊 50d MA</div>
-                <div class="factor-value">{ma50}</div>
-                <div class="factor-desc">Mid trend</div>
-            </div>
-            <div class="factor-card">
-                <div class="factor-title">📊 200d MA</div>
-                <div class="factor-value">{ma200}</div>
-                <div class="factor-desc">Long trend</div>
-            </div>
-            <div class="factor-card">
-                <div class="factor-title">⚡ % Chg</div>
-                <div class="factor-value">{chg}</div>
-                <div class="factor-desc">Today move</div>
-            </div>
-            <div class="factor-card">
-                <div class="factor-title">🌪 Volatility</div>
-                <div class="factor-value">{vol}</div>
-                <div class="factor-desc">20d stddev</div>
-            </div>
-            <div class="factor-card">
-                <div class="factor-title">🔊 Volume</div>
-                <div class="factor-value">{volume}</div>
-                <div class="factor-desc">Latest</div>
-            </div>
-        </div>
-        """.format(
-            price=safe_close,
-            ma20=safe_MA20,
-            ma50=safe_MA50,
-            ma200=safe_MA200,
-            chg=pct_fmt(last["%chg"]),
-            vol=f"{safe_number(last['Volatility']):.2f}" if safe_number(last['Volatility']) != "-" else "-",
-            volume=f"{int(safe_vol):,}" if safe_vol != "-" else "-"
-        ), unsafe_allow_html=True)
-
-        # --- CHART ---
-        chart = go.Figure()
-        chart.add_trace(go.Candlestick(
-            x=df.index,
-            open=df["Open"], high=df["High"], low=df["Low"], close=df["Close"],
-            name="Candle",
-            increasing_line_color="#1db954", decreasing_line_color="#ff4c4c"
-        ))
-        chart.add_trace(go.Scatter(x=df.index, y=df["MA20"], mode="lines", name="MA20", line=dict(color="#fff", dash="dot", width=1)))
-        chart.add_trace(go.Scatter(x=df.index, y=df["MA50"], mode="lines", name="MA50", line=dict(color="#1db954", dash="dash", width=1)))
-        chart.add_trace(go.Scatter(x=df.index, y=df["MA200"], mode="lines", name="MA200", line=dict(color="#f0b400", width=1)))
-        chart.update_layout(
-            template="plotly_dark",
-            margin=dict(l=0,r=0,t=18,b=16),
-            height=340,
-            yaxis=dict(title="Price"),
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(size=11)),
-            font=dict(family="EB Garamond,serif"),
-        )
-        st.plotly_chart(chart, use_container_width=True)
-
-        # --- AI Suggestion and projection ---
-        st.markdown(f"<div class='ai-suggestion'><b>🤖 AI Suggestion</b><br>", unsafe_allow_html=True)
-        st.markdown(f"<b>Signal:</b> <span style='color:#1db954;'>{suggestion}</span>", unsafe_allow_html=True)
-        if simulate:
-            if avg_annual_return == 0 or avg_annual_return == "-":
-                st.markdown("<span style='color:#ff4c4c;'>Not enough data for projection.</span>", unsafe_allow_html=True)
-            else:
-                future_val = capital * ((1 + avg_annual_return) ** years)
-                st.markdown(f"""
-                <div style="margin-top:0.65em;font-size:1.09em;">
-                    <b>If you invest <span style='color:#1db954;'>${capital:,.2f}</span> now and hold for <span style='color:#1db954;'>{years} years</span> at the avg return rate:</b><br>
-                    <span style='font-size:1.25em;color:#ffe48a;'><b>Your money could become: ${future_val:,.2f}</b></span>
+            # --- Stat/legend bar just below ticker ---
+            last = df.dropna(subset=[close_col])
+            if last.empty:
+                st.warning("Not enough data to display stats for this ticker.")
+                continue
+            last_row = last.iloc[-1]
+            st.markdown(
+                f"""
+                <div style="display:flex;gap:1.8em;flex-wrap:wrap;margin-bottom:0.7em;">
+                    <div style="min-width:130px;"><span title="Last price" style="color:#ffd700;">📈</span> <b>Price:</b> {safe_fmt(last_row[close_col])}</div>
+                    <div style="min-width:130px;"><span title="20-day moving average" style="color:#ffb700;">📊</span> <b>MA20:</b> {safe_fmt(last_row['MA20'])}</div>
+                    <div style="min-width:130px;"><span title="50-day moving average" style="color:#ff71ce;">📊</span> <b>MA50:</b> {safe_fmt(last_row['MA50'])}</div>
+                    <div style="min-width:130px;"><span title="200-day moving average" style="color:#1affd5;">📊</span> <b>MA200:</b> {safe_fmt(last_row['MA200'])}</div>
+                    <div style="min-width:130px;"><span title="Momentum" style="color:#e9ff70;">⚡</span> <b>% Chg:</b> {last_row['Daily % Change']:+.2f}%</div>
+                    <div style="min-width:130px;"><span title="Volatility" style="color:#70d6ff;">🌪</span> <b>Vol:</b> {last_row['Volatility (20d)']:.2f}</div>
+                    <div style="min-width:130px;"><span title="Volume" style="color:#fff;">🔊</span> <b>Volume:</b> {int(last_row[vol_col]):,}</div>
                 </div>
-                """, unsafe_allow_html=True)
-                st.markdown("""
-                    <div style='font-size:0.99em;color:#bbb;margin-top:0.65em;'>
-                        *This is a simple prediction using past average returns. Markets can change—invest thoughtfully!*
-                    </div>
-                """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True
+            )
 
-# --- LEGEND (hidden by default) ---
-with st.expander("🟢 What do the factors mean?"):
-    st.markdown("""
-    <ul class="legend-list">
-      <li>📈 <b>Candle</b>: Day's price movement (open, high, low, close)</li>
-      <li>📊 <b>MAs</b>: Moving Averages (trend: 20, 50, 200 days)</li>
-      <li>⚡ <b>% Chg</b>: Momentum (today's % move)</li>
-      <li>🌪 <b>Volatility</b>: How much price moves (risk, 20d standard deviation)</li>
-      <li>🔊 <b>Volume</b>: Trading Activity</li>
-      <li>🤖 <b>AI</b>: Smart suggestion</li>
-    </ul>
-    """, unsafe_allow_html=True)
+            # --- Chart ---
+            st.markdown("<div class='indicator-card'><b>📊 Price Chart & Indicators</b></div>", unsafe_allow_html=True)
+            fig = go.Figure()
+            fig.add_trace(go.Candlestick(
+                x=df.index, open=df[open_col], high=df[high_col], low=df[low_col], close=df[close_col],
+                name='Candlestick'
+            ))
+            fig.add_trace(go.Scatter(
+                x=df.index, y=df["MA20"], line=dict(color='cyan', width=1), name="MA20"
+            ))
+            fig.add_trace(go.Scatter(
+                x=df.index, y=df["MA50"], line=dict(color='#ffb700', width=1), name="MA50"
+            ))
+            fig.add_trace(go.Scatter(
+                x=df.index, y=df["MA100"], line=dict(color='#aaa', width=1, dash="dot"), name="MA100"
+            ))
+            fig.add_trace(go.Scatter(
+                x=df.index, y=df["MA200"], line=dict(color='#fff', width=1, dash="dot"), name="MA200"
+            ))
+            fig.add_trace(go.Scatter(
+                x=df.index, y=df["EMA20"], line=dict(color='#f0c0ff', width=1, dash='dot'), name="EMA20"
+            ))
+            fig.add_trace(go.Scatter(
+                x=df.index, y=df["EMA50"], line=dict(color='#1aff8e', width=1, dash='dot'), name="EMA50"
+            ))
+            fig.add_trace(go.Scatter(
+                x=df.index, y=df["EMA100"], line=dict(color='#e38eff', width=1, dash='dot'), name="EMA100"
+            ))
+            fig.add_trace(go.Scatter(
+                x=df.index, y=df["EMA200"], line=dict(color='#ff7676', width=1, dash='dot'), name="EMA200"
+            ))
+            fig.update_layout(
+                title=f"{ticker} Price Chart",
+                yaxis_title="Price",
+                xaxis_title="Date",
+                xaxis_rangeslider_visible=False,
+                template="plotly_dark",
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+            )
+            st.plotly_chart(fig, use_container_width=True)
 
-# --- ABOUT ---
+            # ---- AI-Powered Trading Suggestion ----
+            st.markdown("<div class='ai-suggestion'><b>🤖 AI-Powered Trading Suggestion</b><br>", unsafe_allow_html=True)
+            ai_text = []
+            ma_short, ma_med, ma_long = df['MA20'].dropna(), df['MA50'].dropna(), df['MA200'].dropna()
+            verdict, safe_pct, risky_pct = "HOLD", 0, 0
+            latest_close = last_row[close_col]
+            if not ma_short.empty and not ma_med.empty and not ma_long.empty:
+                if latest_close > ma_short.iloc[-1] and latest_close > ma_med.iloc[-1] and latest_close > ma_long.iloc[-1]:
+                    ai_text.append("🚀 All trends (short/medium/long-term) are bullish. Strong uptrend.")
+                    verdict = "BUY"
+                elif latest_close < ma_short.iloc[-1] and latest_close < ma_med.iloc[-1] and latest_close < ma_long.iloc[-1]:
+                    ai_text.append("🔻 All trends are bearish. Strong downtrend.")
+                    verdict = "SELL"
+                elif latest_close > ma_short.iloc[-1] and latest_close > ma_med.iloc[-1]:
+                    ai_text.append("↗️ Short/medium-term trend is bullish.")
+                    verdict = "BUY"
+                elif latest_close < ma_short.iloc[-1] and latest_close < ma_med.iloc[-1]:
+                    ai_text.append("↘️ Short/medium-term trend is bearish.")
+                    verdict = "SELL"
+                else:
+                    ai_text.append("⏸️ Mixed trends. Consider holding or waiting for clarity.")
+                    verdict = "HOLD"
+            # --- Volatility
+            recent_volatility = last_row['Volatility (20d)']
+            avg_volatility = df['Volatility (20d)'].dropna().mean()
+            if recent_volatility and avg_volatility:
+                if recent_volatility > 1.2 * avg_volatility:
+                    ai_text.append("⚡ Volatility is HIGH: Expect major price swings.")
+                elif recent_volatility < 0.8 * avg_volatility:
+                    ai_text.append("🔕 Volatility is LOW: Market is calm.")
+                else:
+                    ai_text.append("📏 Volatility is moderate.")
+            # --- Momentum
+            latest_mom = last_row['Daily % Change']
+            if latest_mom > 1.5:
+                ai_text.append("📈 Strong positive momentum today.")
+            elif latest_mom < -1.5:
+                ai_text.append("📉 Strong negative momentum today.")
+            else:
+                ai_text.append("🔄 Momentum is neutral.")
+
+            # --- Final verdict logic
+            if verdict == "BUY":
+                safe_pct = 0.3
+                risky_pct = 0.6 if recent_volatility < 1.2 * avg_volatility else 0.3
+            elif verdict == "SELL":
+                safe_pct = 0.3
+                risky_pct = 0.7 if recent_volatility > 1.2 * avg_volatility else 0.45
+            else:  # HOLD or unclear
+                safe_pct = 0.1
+                risky_pct = 0.2
+
+            verdict_color = {"BUY": "#9cffae", "SELL": "#ff8686", "HOLD": "#ffe48a"}
+            st.markdown(
+                f"<div style='margin-top:0.8em; font-size:1.19em; font-family:EB Garamond,serif;'><b>Final Verdict: "
+                f"<span style='color:{verdict_color[verdict]}'>{verdict}</span></b></div>",
+                unsafe_allow_html=True
+            )
+
+            # --- Optional investment simulation ---
+            if simulate:
+                st.markdown("<div style='font-size:1.07em; font-family:EB Garamond,serif; margin-top:0.8em; color:#ffd700;'><b>Investment Projection:</b></div>", unsafe_allow_html=True)
+                # Use CAGR based on price history
+                n = years
+                first_price = df[close_col].dropna().iloc[0]
+                last_price = df[close_col].dropna().iloc[-1]
+                cagr = (last_price / first_price) ** (1 / max(n,1)) - 1
+                projected = 1000 * ((1 + cagr) ** n)  # for $1000 investment
+                st.markdown(
+                    f"<div style='font-size:1.15em; color:#fff;'>"
+                    f"If you'd invested $1,000 for <b>{n} years</b>: <span style='color:#9cffae; font-size:1.25em;'>${projected:,.2f}</span></div>"
+                    f"<div style='font-size:0.97em; color:#bbb;'>"
+                    f"Projection uses CAGR from historical price. Past performance ≠ future results."
+                    f"</div>",
+                    unsafe_allow_html=True
+                )
+
+            st.markdown(
+                "<div style='margin-top:0.7em; font-family:EB Garamond,serif; color:#fff;'>" + "<br>".join(ai_text) + "</div>",
+                unsafe_allow_html=True
+            )
+            st.markdown(
+                "<div style='font-size:1.02em; color:#ffd700; font-family:EB Garamond,serif;'>(These suggestions are rule-based and for educational purposes. Always research thoroughly before investing!)</div>",
+                unsafe_allow_html=True
+            )
+
 st.markdown("""
-<div style='font-family: "EB Garamond", serif; font-size: 1.41em; color: #1db954; margin-top: 1.4em; margin-bottom: 1.1em; letter-spacing: 0.01em; text-shadow: 0 2px 12px #000;'>
+<div style='
+    font-family: "EB Garamond", serif; 
+    font-size: 1.41em; 
+    color: #ffd700; 
+    margin-top: 1.4em; 
+    margin-bottom: 1.1em; 
+    letter-spacing: 0.01em;
+    text-shadow: 0 2px 12px #000;
+'>
     <b>About QuantPilot</b>
 </div>
-<div style='font-family: "EB Garamond", serif; font-size: 1.13em; color: #fff; margin-bottom: 0.9em;'>
+<div style='
+    font-family: "EB Garamond", serif; 
+    font-size: 1.13em;
+    color: #fff;
+    margin-bottom: 0.9em;
+'>
     QuantPilot empowers investors with:<br><br>
     <ul style="margin-top:0.2em; margin-bottom:0.5em; font-size:1.09em;">
         <li>Beautiful, interactive candlestick charts</li>
