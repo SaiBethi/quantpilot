@@ -126,10 +126,6 @@ st.markdown("""
         font-family:'EB Garamond',serif !important;
         color:#fff !important;
     }
-    .expander-content {
-        font-family:'EB Garamond',serif !important;
-        color:#fff !important;
-    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -152,22 +148,19 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# --- Quick Legend (EB Garamond, clickable one-sentence + details) ---
-with st.expander("📖 Quick Chart/Factor Legend", expanded=False):
+# --- Quick Legend (EB Garamond, one sentence, professional) ---
+with st.expander("📖 Quick Chart/Factor Legend"):
     st.markdown("""
     <div class="el-garamond" style="font-size:1.11em;color:#ffd700;">
-        At a glance: 📈 Price, 📊 Trend, ⚡ Momentum, 🌪 Risk, 🔊 Volume, 🤖 Smart AI allocation
+        📈 Candle: Price moves • 📊 MAs: Trend lines • ⚡ % Chg: Daily momentum • 🌪 Volatility: Risk • 🔊 Volume: Trading activity • 🤖 AI: Smart suggestion.
     </div>
     <ul class="el-garamond" style="font-size:1.07em;margin-top:1em;color:#fff;">
-        <li><b>📈 Candle:</b> Daily price range, direction, and momentum.</li>
-        <li><b>📊 MAs:</b> 20/50/100/200-day moving averages for trend.</li>
-        <li><b>⚡ % Chg:</b> Daily percent momentum.</li>
-        <li><b>🌪 Volatility:</b> 20-day standard deviation (risk/swing).</li>
-        <li><b>🔊 Volume:</b> Underlying trading activity.</li>
-        <li><b>🤖 AI:</b> Combines all factors for an actionable suggestion.</li>
-        <li><b>RSI:</b> Relative Strength Index (overbought/oversold).</li>
-        <li><b>MACD:</b> Moving Average Convergence Divergence (trend change).</li>
-        <li><b>OBV:</b> On-Balance Volume, volume/price confirmation.</li>
+        <li><b>📈 Candle:</b> Shows the range, direction, and momentum of daily price action.</li>
+        <li><b>📊 MAs:</b> 20/50/100/200-day moving averages highlight short, medium, and long-term trends.</li>
+        <li><b>⚡ % Chg:</b> Percentage change shows daily price momentum.</li>
+        <li><b>🌪 Volatility:</b> 20-day standard deviation quantifies price risk and swings.</li>
+        <li><b>🔊 Volume:</b> Shows the strength and conviction behind the moves.</li>
+        <li><b>🤖 AI:</b> Combines all factors to give a signal and allocation plan.</li>
     </ul>
     """, unsafe_allow_html=True)
 
@@ -184,7 +177,7 @@ with st.expander("① Start Here: Select Tickers and Date Range", expanded=True)
     ]
     col1, col2, col3 = st.columns([2, 2, 2])
     with col1:
-        start = st.date_input("Start date", pd.to_datetime("2010-01-01"))
+        start = st.date_input("Start date", pd.to_datetime("2023-01-01"))
     with col2:
         end = st.date_input("End date", pd.to_datetime("today"))
     with col3:
@@ -200,13 +193,16 @@ if st.button("Get Data & Analyze", key="getdata"):
     st.session_state["end"] = end
     st.session_state["interval"] = interval
 
-# --- Simulation and capital/shares entry (all EB Garamond!) ---
-with st.expander("② Options: Simulation and Capital", expanded=False):
+# --- Simulation and capital/shares entry ---
+st.markdown("<span class='section-header'>② Options</span>", unsafe_allow_html=True)
+colc1, colc2 = st.columns([1,1])
+with colc1:
     simulate = st.checkbox("Simulate future growth/projection?", value=False)
-    years = 30
+    years = 5
     if simulate:
-        years = st.slider("Years to Simulate", 1, 100, 30, 1, help="Project up to 100 years ahead (CAGR-based).")
-    capital = st.number_input("Your available capital ($):", min_value=0.0, step=100.0, value=1000.0, format="%.2f")
+        years = st.slider("Years to Simulate", 1, 30, 5, 1)
+with colc2:
+    capital = st.number_input("Your available capital ($):", min_value=0.0, step=100.0, value=1000.0)
     shares_owned = st.number_input("Your number of shares owned:", min_value=0, step=1, value=0)
 
 def safe_number(val):
@@ -224,27 +220,6 @@ def safe_fmt(val, prefix="$"):
     if v == "-":
         return "-"
     return f"{prefix}{v:,.2f}"
-
-def rsi(series, period=14):
-    delta = series.diff()
-    up = delta.clip(lower=0)
-    down = -1 * delta.clip(upper=0)
-    avg_gain = up.rolling(window=period, min_periods=period).mean()
-    avg_loss = down.rolling(window=period, min_periods=period).mean()
-    rs = avg_gain / avg_loss
-    return 100 - (100 / (1 + rs))
-
-def macd(series, fast=12, slow=26, signal=9):
-    ema_fast = series.ewm(span=fast, adjust=False).mean()
-    ema_slow = series.ewm(span=slow, adjust=False).mean()
-    macd_line = ema_fast - ema_slow
-    signal_line = macd_line.ewm(span=signal, adjust=False).mean()
-    histogram = macd_line - signal_line
-    return macd_line, signal_line, histogram
-
-def obv(close, volume):
-    direction = np.sign(close.diff()).fillna(0)
-    return (volume * direction).cumsum()
 
 st.markdown("<span class='section-header'>③ Stock Data & Analysis</span>", unsafe_allow_html=True)
 if st.session_state["data_loaded"]:
@@ -285,14 +260,8 @@ if st.session_state["data_loaded"]:
             df['EMA200'] = df[close_col].ewm(span=200, adjust=False).mean()
             df['Daily % Change'] = df[close_col].pct_change()*100
             df['Volatility (20d)'] = df[close_col].rolling(window=20).std()
-            df['RSI'] = rsi(df[close_col])
-            macd_line, signal_line, macd_hist = macd(df[close_col])
-            df['MACD'] = macd_line
-            df['MACD_Signal'] = signal_line
-            df['MACD_Hist'] = macd_hist
-            df['OBV'] = obv(df[close_col], df[vol_col])
 
-            # --- Split graphs in a 2x2 grid, plus more below for pro feel ---
+            # --- Split graphs in a 2x2 grid ---
             gcol1, gcol2 = st.columns([2.2, 1.8], gap="large")
             with gcol1:
                 # Top left: Price Chart & Indicators
@@ -337,44 +306,41 @@ if st.session_state["data_loaded"]:
                 )
                 st.plotly_chart(fig, use_container_width=True)
 
+                # Bottom left: Daily Change Momentum
+                st.markdown("<div class='indicator-card'><b>⚡️ Daily % Change (Momentum)</b></div>", unsafe_allow_html=True)
+                st.line_chart(df['Daily % Change'], use_container_width=True)
+
+                # Bottom left: Key Stats
+                st.markdown("<div class='indicator-card'><b>📋 Key Stats for this Period</b>", unsafe_allow_html=True)
+                last_row = df.dropna(subset=[close_col]).iloc[-1]
+                stat_table = f"""
+                <table class="stat-table">
+                <tr><th>Latest Close</th><td>${last_row[close_col]:.2f}</td></tr>
+                <tr><th>Volume</th><td>{int(last_row[vol_col]):,}</td></tr>
+                {"<tr><th>High (period)</th><td>${:.2f}</td></tr>".format(df[high_col].max()) if high_col in df.columns else ""}
+                {"<tr><th>Low (period)</th><td>${:.2f}</td></tr>".format(df[low_col].min()) if low_col in df.columns else ""}
+                <tr><th>Total Trading Days</th><td>{len(df)}</td></tr>
+                <tr><th>Mean Volatility (20d)</th><td>{df['Volatility (20d)'].dropna().mean():.3f}</td></tr>
+                <tr><th>Mean Daily % Change</th><td>{df['Daily % Change'].dropna().mean():.3f}%</td></tr>
+                </table>
+                """
+                st.markdown(stat_table, unsafe_allow_html=True)
+                st.markdown("</div>", unsafe_allow_html=True)
             with gcol2:
                 # Top right: Volume Traded
                 st.markdown("<div class='indicator-card'><b>🔊 Volume Traded</b></div>", unsafe_allow_html=True)
                 st.bar_chart(df[vol_col], use_container_width=True)
 
-            # Second row: Daily Change, Volatility, RSI, MACD, OBV
-            g2col1, g2col2 = st.columns([1,1], gap="large")
-            with g2col1:
-                st.markdown("<div class='indicator-card'><b>⚡️ Daily % Change (Momentum)</b></div>", unsafe_allow_html=True)
-                st.line_chart(df['Daily % Change'], use_container_width=True)
+                # Bottom right: Volatility
                 st.markdown("<div class='indicator-card'><b>📈 Volatility (20d rolling std)</b></div>", unsafe_allow_html=True)
                 st.line_chart(df['Volatility (20d)'], use_container_width=True)
-                st.markdown("<div class='indicator-card'><b>📉 RSI (14d)</b></div>", unsafe_allow_html=True)
-                st.line_chart(df['RSI'], use_container_width=True)
-            with g2col2:
-                st.markdown("<div class='indicator-card'><b>🔀 MACD</b></div>", unsafe_allow_html=True)
-                mfig = go.Figure()
-                mfig.add_trace(go.Scatter(x=df.index, y=df['MACD'], name="MACD Line", line=dict(color="#1db954")))
-                mfig.add_trace(go.Scatter(x=df.index, y=df['MACD_Signal'], name="Signal Line", line=dict(color="#ffb700")))
-                mfig.add_trace(go.Bar(x=df.index, y=df['MACD_Hist'], name="MACD Histogram", marker_color="#aaf"))
-                mfig.update_layout(
-                    template="plotly_dark",
-                    margin=dict(l=0, r=0, t=8, b=8),
-                    height=200,
-                    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(size=11)),
-                    font=dict(family="EB Garamond,serif"),
-                )
-                st.plotly_chart(mfig, use_container_width=True)
-
-                st.markdown("<div class='indicator-card'><b>📊 OBV (On-Balance Volume)</b></div>", unsafe_allow_html=True)
-                st.line_chart(df['OBV'], use_container_width=True)
 
                 # --- AI-Powered Trading Suggestion & Investment Projection ---
                 st.markdown("<div class='ai-suggestion'><b>🤖 AI-Powered Trading Suggestion</b><br>", unsafe_allow_html=True)
                 ai_text = []
                 ma_short, ma_med, ma_long = df['MA20'].dropna(), df['MA50'].dropna(), df['MA200'].dropna()
                 verdict, safe_pct, risky_pct = "HOLD", 0, 0
-                latest_close = df[close_col].dropna().iloc[-1]
+                latest_close = last_row[close_col]
                 if not ma_short.empty and not ma_med.empty and not ma_long.empty:
                     if latest_close > ma_short.iloc[-1] and latest_close > ma_med.iloc[-1] and latest_close > ma_long.iloc[-1]:
                         ai_text.append("🚀 All trends (short/medium/long-term) are bullish. Strong uptrend.")
@@ -391,7 +357,7 @@ if st.session_state["data_loaded"]:
                     else:
                         ai_text.append("⏸️ Mixed trends. Consider holding or waiting for clarity.")
                         verdict = "HOLD"
-                recent_volatility = df['Volatility (20d)'].dropna().iloc[-1]
+                recent_volatility = last_row['Volatility (20d)']
                 avg_volatility = df['Volatility (20d)'].dropna().mean()
                 if recent_volatility and avg_volatility:
                     if recent_volatility > 1.2 * avg_volatility:
@@ -400,7 +366,7 @@ if st.session_state["data_loaded"]:
                         ai_text.append("🔕 Volatility is LOW: Market is calm.")
                     else:
                         ai_text.append("📏 Volatility is moderate.")
-                latest_mom = df['Daily % Change'].dropna().iloc[-1]
+                latest_mom = last_row['Daily % Change']
                 if latest_mom > 1.5:
                     ai_text.append("📈 Strong positive momentum today.")
                 elif latest_mom < -1.5:
@@ -521,7 +487,6 @@ with st.expander("About QuantPilot"):
         <li>Downloadable CSVs</li>
         <li>Clear, plain-English insights</li>
         <li>Multi-ticker support!</li>
-        <li>Advanced: RSI, MACD, OBV, and more</li>
     </ul>
     </div>
     """, unsafe_allow_html=True)
