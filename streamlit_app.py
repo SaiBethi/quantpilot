@@ -171,6 +171,24 @@ with st.expander("📖 Show quick chart legend (what does everything mean?)"):
     </div>
     """, unsafe_allow_html=True)
 
+# ---- Helper functions for safe formatting ----
+def safe_number(val):
+    """Return a float if val is a Series or single value, else '-' for NaN or errors."""
+    try:
+        if isinstance(val, pd.Series):
+            val = val.iloc[0]
+        if pd.isnull(val):
+            return "-"
+        return float(val)
+    except Exception:
+        return "-"
+
+def safe_fmt(val, prefix="$"):
+    v = safe_number(val)
+    if v == "-":
+        return "-"
+    return f"{prefix}{v:,.2f}"
+
 # --- Input: Ticker, Capital, and Date Range, as a "dashboard" ---
 dashboard_cols = st.columns([2, 2, 2])
 with dashboard_cols[0]:
@@ -202,38 +220,39 @@ if st.button("Go!", type="primary"):
         df["Momentum"] = df["%chg"].rolling(5).mean()
         df["Volume"] = df["Volume"]
 
-        last = df.iloc[-1]
-        # Use .item() if scalar, else float(), else "-"
-        def safe_fmt(val):
-            try:
-                if pd.isnull(val): return "-"
-                v = float(val)
-                return f"${v:,.2f}"
-            except Exception:
-                return "-"
+        last = df.iloc[[-1]]  # Always DataFrame
+        last = last.squeeze() # Ensures it's a Series
 
-        start_price = float(df["Close"].iloc[0])
-        end_price = float(df["Close"].iloc[-1])
-        total_return = (end_price - start_price) / start_price if start_price else 0
-        avg_annual_return = ((end_price/start_price)**(1/years))-1 if simulate and years > 0 and start_price > 0 else 0
+        safe_close = safe_fmt(last["Close"])
+        safe_chg = safe_number(last["%chg"])
+        safe_vol = safe_number(last["Volume"])
+        safe_MA20 = safe_fmt(last["MA20"])
+        safe_MA50 = safe_fmt(last["MA50"])
+        safe_MA200 = safe_fmt(last["MA200"])
 
-        # --- Robinhood-style summary card
+        start_price = safe_number(df["Close"].iloc[0])
+        end_price = safe_number(df["Close"].iloc[-1])
+        total_return = ((end_price - start_price) / start_price) if start_price not in ["-", 0] else 0
+        avg_annual_return = ((end_price/start_price)**(1/years))-1 if simulate and years > 0 and start_price not in ["-", 0] else 0
+
         st.markdown(f"""
         <div style='display:flex;align-items:flex-end;gap:2.5em;margin-bottom:1.2em;flex-wrap:wrap;'>
           <div style='background:#18191d;border-radius:1.2em;padding:1.1em 1.5em;box-shadow:0 2px 8px #0003;border:1.5px solid #1db954;min-width:275px;'>
             <span style='font-size:2.15em;font-weight:700;color:#1db954;'>{ticker.upper()}</span><br>
-            <span style='font-size:1.1em;'>${last["Close"]:.2f} <span style="color:{'#1db954' if last['%chg']>0 else '#ff4c4c'};">({last['%chg']:+.2f}%)</span></span><br>
-            <span style='font-size:0.98em;color:#aaa;'>Vol: {int(last['Volume']):,}</span>
+            <span style='font-size:1.1em;'>{safe_close} 
+              <span style="color:{'#1db954' if safe_chg != '-' and safe_chg > 0 else '#ff4c4c'};">({safe_chg if safe_chg != '-' else '-'}%)</span>
+            </span><br>
+            <span style='font-size:0.98em;color:#aaa;'>Vol: {int(safe_vol) if safe_vol != '-' else '-'}</span>
           </div>
           <div style='background:#18191d;border-radius:1.2em;padding:1.1em 1.5em;box-shadow:0 2px 8px #0003;border:1.5px solid #222;min-width:210px;'>
             <b>Total Return:</b> <span style="color:{'#1db954' if total_return>=0 else '#ff4c4c'};">{total_return*100:+.1f}%</span><br>
             {f'<b>Avg/Year:</b> <span style="color:{("#1db954" if avg_annual_return>=0 else "#ff4c4c")};">{avg_annual_return*100:+.1f}%</span><br>' if simulate else ''}
-            <b>Volatility:</b> <span>{df["Volatility"].dropna().mean():.2f}</span>
+            <b>Volatility:</b> <span>{safe_number(df["Volatility"].dropna().mean()):.2f}</span>
           </div>
           <div style='background:#18191d;border-radius:1.2em;padding:1.1em 1.5em;box-shadow:0 2px 8px #0003;border:1.5px solid #222;min-width:210px;'>
-            <b>20d MA:</b> {safe_fmt(last["MA20"])}<br>
-            <b>50d MA:</b> {safe_fmt(last["MA50"])}<br>
-            <b>200d MA:</b> {safe_fmt(last["MA200"])}
+            <b>20d MA:</b> {safe_MA20}<br>
+            <b>50d MA:</b> {safe_MA50}<br>
+            <b>200d MA:</b> {safe_MA200}
           </div>
         </div>
         """, unsafe_allow_html=True)
@@ -254,16 +273,16 @@ if st.button("Go!", type="primary"):
         )
         st.plotly_chart(chart, use_container_width=True)
 
-        # --- AI Suggestion Card + Investment Projection (optional) ---
         st.markdown(f"<div class='ai-suggestion'><b>🤖 AI Suggestion</b><br>", unsafe_allow_html=True)
         suggestion = "HOLD"
         color = "#ffe48a"
-        if last["Close"] > last["MA20"] > last["MA50"]:
-            suggestion = "BUY"
-            color = "#1db954"
-        elif last["Close"] < last["MA20"] < last["MA50"]:
-            suggestion = "SELL"
-            color = "#ff4c4c"
+        if safe_number(last["Close"]) != "-" and safe_number(last["MA20"]) != "-" and safe_number(last["MA50"]) != "-":
+            if safe_number(last["Close"]) > safe_number(last["MA20"]) > safe_number(last["MA50"]):
+                suggestion = "BUY"
+                color = "#1db954"
+            elif safe_number(last["Close"]) < safe_number(last["MA20"]) < safe_number(last["MA50"]):
+                suggestion = "SELL"
+                color = "#ff4c4c"
         st.markdown(f"<b>Signal:</b> <span style='color:{color}'>{suggestion}</span>", unsafe_allow_html=True)
 
         if simulate:
