@@ -128,6 +128,10 @@ st.markdown("""
         margin-top:2.5em;
         font-family:'EB Garamond',serif !important;
     }
+    .el-garamond {
+        font-family:'EB Garamond',serif !important;
+        color:#fff !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -150,31 +154,13 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# --- One-sentence legend ---
+# --- Quick Legend (El Garamond, one sentence) ---
 with st.expander("📖 Quick Chart/Factor Legend"):
     st.markdown("""
-    <div style="font-size:1.11em; color:#ffd700; font-family:'EB Garamond',serif;">
-        All icons below show price, trend, momentum, risk, volume, and AI suggestions – hover over them for details.
+    <div style="font-family:'EB Garamond',serif;font-size:1.12em;color:#ffd700;">
+        📈 Candle: Shows price moves; 📊 MAs: Trend lines; ⚡ % Chg: Daily momentum; 🌪 Volatility: Risk; 🔊 Volume: Trading activity; 🤖 AI: Smart suggestion.
     </div>
     """, unsafe_allow_html=True)
-
-# --- Title and subtitle ---
-st.markdown("""
-<h1 style='text-align:center; font-size:2.1rem; margin-bottom:0.45em; margin-top:0.1em; color:#fff; font-family:EB Garamond,serif; font-weight:700;'>
-📈 QuantPilot: All-in-One Dashboard
-</h1>
-<div style='text-align:center; font-size:1.11rem; margin-bottom:0.6em; color:#eee; font-family:EB Garamond,serif;'>
-    Analytics, interactive charts, easy-to-understand insights.<br>
-    <span style='font-size:1.00rem;'>Clarity for your stocks—no matter your experience level.</span>
-</div>
-""", unsafe_allow_html=True)
-
-# --- Indicator explanations shortcut ---
-st.markdown(
-    "<div style='font-size:1.01em; color:#ffd700; font-family:EB Garamond,serif; float:right; text-align:right; margin-top:-2.1em;'>"
-    "Need help? Click above for the full chart/factor legend.</div>",
-    unsafe_allow_html=True
-)
 
 # --- Data input expander ---
 if "data_loaded" not in st.session_state:
@@ -217,7 +203,23 @@ with colc2:
     capital = st.number_input("Your available capital ($):", min_value=0.0, step=100.0, value=1000.0)
     shares_owned = st.number_input("Your number of shares owned:", min_value=0, step=1, value=0)
 
-# --- Stock Data & AI/Projection Split ---
+def safe_number(val):
+    """Return a float if val is a Series or single value, else '-' for NaN or errors."""
+    try:
+        if isinstance(val, pd.Series):
+            val = val.iloc[0]
+        if pd.isnull(val):
+            return "-"
+        return float(val)
+    except Exception:
+        return "-"
+
+def safe_fmt(val, prefix="$"):
+    v = safe_number(val)
+    if v == "-":
+        return "-"
+    return f"{prefix}{v:,.2f}"
+
 st.markdown("<span class='section-header'>③ Stock Data & Analysis</span>", unsafe_allow_html=True)
 if st.session_state["data_loaded"]:
     data = st.session_state["stock_data"]
@@ -247,8 +249,6 @@ if st.session_state["data_loaded"]:
                 continue
 
             df = data[[c for c in [open_col, close_col, high_col, low_col, vol_col] if c in data.columns]].copy()
-
-            # --- Moving Averages ---
             df['MA20'] = df[close_col].rolling(window=20).mean()
             df['MA50'] = df[close_col].rolling(window=50).mean()
             df['MA100'] = df[close_col].rolling(window=100).mean()
@@ -257,36 +257,13 @@ if st.session_state["data_loaded"]:
             df['EMA50'] = df[close_col].ewm(span=50, adjust=False).mean()
             df['EMA100'] = df[close_col].ewm(span=100, adjust=False).mean()
             df['EMA200'] = df[close_col].ewm(span=200, adjust=False).mean()
-            # --- Daily % Change (Momentum) ---
             df['Daily % Change'] = df[close_col].pct_change()*100
-            # --- Volatility (20-day rolling std) ---
             df['Volatility (20d)'] = df[close_col].rolling(window=20).std()
 
-            # --- Split left (charts/tables) and right (AI/project) ---
-            left, right = st.columns([1.65, 1.15])
-
-            with left:
-                # Stat/legend bar just below ticker
-                last = df.dropna(subset=[close_col])
-                if last.empty:
-                    st.warning("Not enough data to display stats for this ticker.")
-                    continue
-                last_row = last.iloc[-1]
-                st.markdown(
-                    f"""
-                    <div style="display:flex;gap:1.2em;flex-wrap:wrap;margin-bottom:0.7em; font-family:'EB Garamond',serif;">
-                        <div><span title="Last price" style="color:#ffd700;">📈</span> <b>Price:</b> {last_row[close_col]:.2f}</div>
-                        <div><span title="20-day moving average" style="color:#ffb700;">📊</span> <b>MA20:</b> {last_row['MA20']:.2f}</div>
-                        <div><span title="50-day moving average" style="color:#ff71ce;">📊</span> <b>MA50:</b> {last_row['MA50']:.2f}</div>
-                        <div><span title="200-day moving average" style="color:#1affd5;">📊</span> <b>MA200:</b> {last_row['MA200']:.2f}</div>
-                        <div><span title="Momentum" style="color:#e9ff70;">⚡</span> <b>% Chg:</b> {last_row['Daily % Change']:+.2f}%</div>
-                        <div><span title="Volatility" style="color:#70d6ff;">🌪</span> <b>Vol:</b> {last_row['Volatility (20d)']:.2f}</div>
-                        <div><span title="Volume" style="color:#fff;">🔊</span> <b>Volume:</b> {int(last_row[vol_col]):,}</div>
-                    </div>
-                    """, unsafe_allow_html=True
-                )
-
-                # Chart
+            # --- Split graphs in a 2x2 grid ---
+            gcol1, gcol2 = st.columns([2.2, 1.8], gap="large")
+            with gcol1:
+                # Top left: Price Chart & Indicators
                 st.markdown("<div class='indicator-card'><b>📊 Price Chart & Indicators</b></div>", unsafe_allow_html=True)
                 fig = go.Figure()
                 fig.add_trace(go.Candlestick(
@@ -318,7 +295,8 @@ if st.session_state["data_loaded"]:
                     x=df.index, y=df["EMA200"], line=dict(color='#ff7676', width=1, dash='dot'), name="EMA200"
                 ))
                 fig.update_layout(
-                    title=f"{ticker} Price Chart",
+                    margin=dict(l=0, r=0, t=18, b=16),
+                    height=320,
                     yaxis_title="Price",
                     xaxis_title="Date",
                     xaxis_rangeslider_visible=False,
@@ -327,21 +305,13 @@ if st.session_state["data_loaded"]:
                 )
                 st.plotly_chart(fig, use_container_width=True)
 
-                # Volume Chart
-                if vol_col in df.columns:
-                    st.markdown("<div class='indicator-card'><b>Volume Traded</b></div>", unsafe_allow_html=True)
-                    st.bar_chart(df[vol_col], use_container_width=True)
-
-                # Momentum Chart
+                # Bottom left: Daily Change Momentum
                 st.markdown("<div class='indicator-card'><b>⚡️ Daily % Change (Momentum)</b></div>", unsafe_allow_html=True)
-                st.line_chart(df['Daily % Change'])
-
-                # Volatility Chart
-                st.markdown("<div class='indicator-card'><b>📈 Volatility (20d rolling std)</b></div>", unsafe_allow_html=True)
-                st.line_chart(df['Volatility (20d)'])
+                st.line_chart(df['Daily % Change'], use_container_width=True)
 
                 # Key Stats
                 st.markdown("<div class='indicator-card'><b>📋 Key Stats for this Period</b>", unsafe_allow_html=True)
+                last_row = df.dropna(subset=[close_col]).iloc[-1]
                 stat_table = f"""
                 <table class="stat-table">
                 <tr><th>Latest Close</th><td>${last_row[close_col]:.2f}</td></tr>
@@ -355,16 +325,16 @@ if st.session_state["data_loaded"]:
                 """
                 st.markdown(stat_table, unsafe_allow_html=True)
                 st.markdown("</div>", unsafe_allow_html=True)
+            with gcol2:
+                # Top right: Volume Traded
+                st.markdown("<div class='indicator-card'><b>🔊 Volume Traded</b></div>", unsafe_allow_html=True)
+                st.bar_chart(df[vol_col], use_container_width=True)
 
-                st.download_button(
-                    label="Download data as CSV",
-                    data=df.to_csv().encode(),
-                    file_name=f"{ticker}_{start}_{end}.csv",
-                    mime="text/csv",
-                )
+                # Bottom right: Volatility
+                st.markdown("<div class='indicator-card'><b>📈 Volatility (20d rolling std)</b></div>", unsafe_allow_html=True)
+                st.line_chart(df['Volatility (20d)'], use_container_width=True)
 
-            with right:
-                # ---- AI-Powered Trading Suggestion ----
+                # --- AI-Powered Trading Suggestion & Investment Projection ---
                 st.markdown("<div class='ai-suggestion'><b>🤖 AI-Powered Trading Suggestion</b><br>", unsafe_allow_html=True)
                 ai_text = []
                 ma_short, ma_med, ma_long = df['MA20'].dropna(), df['MA50'].dropna(), df['MA200'].dropna()
