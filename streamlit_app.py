@@ -6,7 +6,7 @@ import numpy as np
 
 st.set_page_config(page_title="QuantPilot: All-in-One Dashboard", layout="wide")
 
-# --- Styling ---
+# --- Full EB Garamond & Dark BG UI ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;600;700&display=swap');
@@ -18,23 +18,19 @@ st.markdown("""
     .block-container {
         background: #111 !important;
         color: #fff !important;
+        font-family: 'EB Garamond', serif !important;
     }
-    label, .stTextInput label, .stNumberInput label, .stDateInput label, .stSelectbox label, .st-expanderHeader {
+    label, .stTextInput label, .stNumberInput label, .stDateInput label, .stSelectbox label, .st-expanderHeader, .stCheckbox>label {
         color: #fff !important;
         font-family: 'EB Garamond', serif !important;
-        font-size: 1.04em !important;
+        font-size: 1.07em !important;
     }
-    .stTextInput>div>input, .stNumberInput>div>input, .stDateInput>div>input {
+    .stTextInput>div>input, .stNumberInput>div>input, .stDateInput>div>input, .stSelectbox>div, .stTextArea textarea {
         background: #222 !important;
         color: #fff !important;
         border: 1.5px solid #444 !important;
         font-family: 'EB Garamond', serif !important;
-    }
-    .stSelectbox>div {
-        background: #222 !important;
-        color: #fff !important;
-        border: 1.5px solid #444 !important;
-        font-family: 'EB Garamond', serif !important;
+        font-size: 1.08em !important;
     }
     .stTextInput>div>input::placeholder {
         color: #bbb !important;
@@ -44,33 +40,29 @@ st.markdown("""
     .stButton>button, .stDownloadButton>button {
         font-family: 'EB Garamond', serif !important;
         font-weight: 600;
-        font-size: 1.08rem !important;
+        font-size: 1.08em !important;
         border-radius: 10px;
         background: #222 !important;
         color: #fff !important;
         border: 1.5px solid #444;
+        margin-bottom: 0.5em;
     }
     .stButton>button:hover, .stDownloadButton>button:hover {
         background: #333 !important;
         color: #fff !important;
     }
-    h1, h2, h3, h4, h5, h6 {
-        font-family: 'EB Garamond', serif !important;
-        font-weight: 700 !important;
-        color: #fff !important;
-    }
-    .stMarkdown, .indicator-card, .ai-suggestion, .stat-table {
+    h1, h2, h3, h4, h5, h6, .stMarkdown, .indicator-card, .ai-suggestion, .stat-table, .copyright-text {
         font-family: 'EB Garamond', serif !important;
         color: #fff !important;
     }
     .indicator-card {
         background: #191919 !important;
         border-radius: 1em;
-        padding: 1.1em 1.5em;
-        margin: 0.7em 0 1.1em 0;
+        padding: 1em 1.2em;
+        margin: 0.65em 0 1em 0;
         box-shadow: 0 2px 8px rgba(20,20,20,0.23);
         border: 1.5px solid #333;
-        font-size: 1.13em;
+        font-size: 1.12em;
         color: #fff !important;
     }
     .ai-suggestion {
@@ -80,14 +72,14 @@ st.markdown("""
         margin: 0.7em 0 1.3em 0;
         box-shadow: 0 2px 8px rgba(40,40,40,0.19);
         border: 1.5px solid #333;
-        font-size: 1.13em;
+        font-size: 1.16em;
         font-weight: 500;
         color: #fff !important;
     }
     .section-header {
-        font-size: 1.75em !important;
-        margin-top: 1.1em !important;
-        margin-bottom: 0.6em !important;
+        font-size: 1.65em !important;
+        margin-top: 1em !important;
+        margin-bottom: 0.5em !important;
         font-family: 'EB Garamond', serif !important;
         font-weight: 700 !important;
         color: #fff !important;
@@ -96,17 +88,18 @@ st.markdown("""
     .stat-table {
         width: 100%;
         border-collapse: collapse;
-        margin: 0.7em 0 1.3em 0;
+        margin: 0.5em 0 1.1em 0;
         font-size: 1.13em;
         color: #fff !important;
+        font-family: 'EB Garamond', serif !important;
     }
     .stat-table th, .stat-table td {
         border: none;
         text-align: left;
-        padding: 0.37em 1.3em 0.37em 0;
+        padding: 0.27em 1em 0.27em 0;
         vertical-align: middle;
-        font-family: 'EB Garamond', serif !important;
         color: #fff !important;
+        font-family: 'EB Garamond', serif !important;
     }
     .stat-table th {
         color: #ffdc8f !important;
@@ -124,8 +117,9 @@ st.markdown("""
     .copyright-text {
         text-align:center;
         color:#888;
-        font-size:0.99em;
+        font-size:1.10em;
         margin-top:2.5em;
+        margin-bottom:1em;
         font-family:'EB Garamond',serif !important;
     }
     .el-garamond {
@@ -154,12 +148,20 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# --- Quick Legend (El Garamond, one sentence) ---
+# --- Quick Legend (EB Garamond, one sentence, professional) ---
 with st.expander("📖 Quick Chart/Factor Legend"):
     st.markdown("""
-    <div style="font-family:'EB Garamond',serif;font-size:1.12em;color:#ffd700;">
-        📈 Candle: Shows price moves; 📊 MAs: Trend lines; ⚡ % Chg: Daily momentum; 🌪 Volatility: Risk; 🔊 Volume: Trading activity; 🤖 AI: Smart suggestion.
+    <div class="el-garamond" style="font-size:1.11em;color:#ffd700;">
+        📈 Candle: Price moves • 📊 MAs: Trend lines • ⚡ % Chg: Daily momentum • 🌪 Volatility: Risk • 🔊 Volume: Trading activity • 🤖 AI: Smart suggestion.
     </div>
+    <ul class="el-garamond" style="font-size:1.07em;margin-top:1em;color:#fff;">
+        <li><b>📈 Candle:</b> Shows the range, direction, and momentum of daily price action.</li>
+        <li><b>📊 MAs:</b> 20/50/100/200-day moving averages highlight short, medium, and long-term trends.</li>
+        <li><b>⚡ % Chg:</b> Percentage change shows daily price momentum.</li>
+        <li><b>🌪 Volatility:</b> 20-day standard deviation quantifies price risk and swings.</li>
+        <li><b>🔊 Volume:</b> Shows the strength and conviction behind the moves.</li>
+        <li><b>🤖 AI:</b> Combines all factors to give a signal and allocation plan.</li>
+    </ul>
     """, unsafe_allow_html=True)
 
 # --- Data input expander ---
@@ -204,7 +206,6 @@ with colc2:
     shares_owned = st.number_input("Your number of shares owned:", min_value=0, step=1, value=0)
 
 def safe_number(val):
-    """Return a float if val is a Series or single value, else '-' for NaN or errors."""
     try:
         if isinstance(val, pd.Series):
             val = val.iloc[0]
@@ -309,7 +310,7 @@ if st.session_state["data_loaded"]:
                 st.markdown("<div class='indicator-card'><b>⚡️ Daily % Change (Momentum)</b></div>", unsafe_allow_html=True)
                 st.line_chart(df['Daily % Change'], use_container_width=True)
 
-                # Key Stats
+                # Bottom left: Key Stats
                 st.markdown("<div class='indicator-card'><b>📋 Key Stats for this Period</b>", unsafe_allow_html=True)
                 last_row = df.dropna(subset=[close_col]).iloc[-1]
                 stat_table = f"""
@@ -356,7 +357,6 @@ if st.session_state["data_loaded"]:
                     else:
                         ai_text.append("⏸️ Mixed trends. Consider holding or waiting for clarity.")
                         verdict = "HOLD"
-                # --- Volatility
                 recent_volatility = last_row['Volatility (20d)']
                 avg_volatility = df['Volatility (20d)'].dropna().mean()
                 if recent_volatility and avg_volatility:
@@ -366,7 +366,6 @@ if st.session_state["data_loaded"]:
                         ai_text.append("🔕 Volatility is LOW: Market is calm.")
                     else:
                         ai_text.append("📏 Volatility is moderate.")
-                # --- Momentum
                 latest_mom = last_row['Daily % Change']
                 if latest_mom > 1.5:
                     ai_text.append("📈 Strong positive momentum today.")
@@ -388,7 +387,7 @@ if st.session_state["data_loaded"]:
 
                 verdict_color = {"BUY": "#9cffae", "SELL": "#ff8686", "HOLD": "#ffe48a"}
                 st.markdown(
-                    f"<div style='margin-top:0.8em; font-size:1.19em; font-family:EB Garamond,serif;'><b>Final Verdict: "
+                    f"<div class='el-garamond' style='margin-top:0.8em; font-size:1.19em;'><b>Final Verdict: "
                     f"<span style='color:{verdict_color[verdict]}'>{verdict}</span></b></div>",
                     unsafe_allow_html=True
                 )
@@ -401,7 +400,7 @@ if st.session_state["data_loaded"]:
                 allocation_block = ""
                 if verdict == "BUY":
                     st.markdown(
-                        f"<span style='font-family:EB Garamond,serif; font-size:1.02em; margin-bottom:0.1em; display:block; color:#fff;'>{capital_help}</span>",
+                        f"<span class='el-garamond' style='font-size:1.02em; margin-bottom:0.1em; display:block; color:#fff;'>{capital_help}</span>",
                         unsafe_allow_html=True
                     )
                     if capital >= latest_close * 2:
@@ -415,7 +414,7 @@ if st.session_state["data_loaded"]:
                         allocation_block = f"Enter at least ${min_capital:.2f} capital to see recommended shares to buy."
                 elif verdict == "SELL":
                     st.markdown(
-                        f"<span style='font-family:EB Garamond,serif; font-size:1.02em; margin-bottom:0.1em; display:block; color:#fff;'>{shares_help}</span>",
+                        f"<span class='el-garamond' style='font-size:1.02em; margin-bottom:0.1em; display:block; color:#fff;'>{shares_help}</span>",
                         unsafe_allow_html=True
                     )
                     if shares_owned >= 2:
@@ -429,7 +428,7 @@ if st.session_state["data_loaded"]:
                         allocation_block = f"Enter at least 2 shares owned to see recommended shares to sell."
                 else:  # HOLD or unclear
                     st.markdown(
-                        f"<span style='font-family:EB Garamond,serif; font-size:1.02em; margin-bottom:0.1em; display:block; color:#fff;'>{shares_help}</span>",
+                        f"<span class='el-garamond' style='font-size:1.02em; margin-bottom:0.1em; display:block; color:#fff;'>{shares_help}</span>",
                         unsafe_allow_html=True
                     )
                     if shares_owned >= 2:
@@ -443,18 +442,18 @@ if st.session_state["data_loaded"]:
                         allocation_block = f"Enter at least 2 shares owned to see recommended shares to hold."
 
                 st.markdown(
-                    f"<div style='font-size:1.09em; margin-top:0.23em; font-family:EB Garamond,serif; color:#fff;'>{allocation_block}</div>",
+                    f"<div class='el-garamond' style='font-size:1.09em; margin-top:0.23em; color:#fff;'>{allocation_block}</div>",
                     unsafe_allow_html=True
                 )
                 st.markdown(
-                    "<div style='margin-top:0.7em; font-family:EB Garamond,serif; color:#fff;'>" + "<br>".join(ai_text) + "</div>",
+                    "<div class='el-garamond' style='margin-top:0.7em; color:#fff;'>" + "<br>".join(ai_text) + "</div>",
                     unsafe_allow_html=True
                 )
 
                 # --- Optional investment simulation ---
                 if simulate:
                     st.markdown(
-                        "<div class='project-text' style='font-size:1.07em; margin-top:0.8em;'><b>Investment Projection:</b></div>",
+                        "<div class='el-garamond project-text' style='font-size:1.07em; margin-top:0.8em;'><b>Investment Projection:</b></div>",
                         unsafe_allow_html=True
                     )
                     n = years
@@ -463,22 +462,22 @@ if st.session_state["data_loaded"]:
                     cagr = (last_price / first_price) ** (1 / max(n,1)) - 1
                     projected = capital * ((1 + cagr) ** n)
                     st.markdown(
-                        f"<div class='project-text' style='font-size:1.15em; color:#fff;'>"
+                        f"<div class='el-garamond project-text' style='font-size:1.15em; color:#fff;'>"
                         f"If you'd invested ${capital:,.2f} for <b>{n} years</b>: <span style='color:#9cffae; font-size:1.25em;'>${projected:,.2f}</span></div>"
-                        f"<div class='project-text' style='font-size:0.97em; color:#bbb;'>"
+                        f"<div class='el-garamond project-text' style='font-size:0.97em; color:#bbb;'>"
                         f"Projection uses CAGR from historical price. Past performance ≠ future results."
                         f"</div>",
                         unsafe_allow_html=True
                     )
 
                 st.markdown(
-                    "<div style='font-size:1.02em; color:#ffd700; font-family:EB Garamond,serif;'>(These suggestions are rule-based and for educational purposes. Always research thoroughly before investing!)</div>",
+                    "<div class='el-garamond' style='font-size:1.02em; color:#ffd700;'>(These suggestions are rule-based and for educational purposes. Always research thoroughly before investing!)</div>",
                     unsafe_allow_html=True
                 )
 
 with st.expander("About QuantPilot"):
     st.markdown("""
-    <div style='font-family:"EB Garamond",serif;font-size:1.17em;color:#fff;'>
+    <div class='el-garamond' style='font-size:1.17em;color:#fff;'>
     QuantPilot empowers investors with:
     <ul style="margin-top:0.3em; margin-bottom:0.8em; font-size:1.09em;">
         <li>Beautiful, interactive candlestick charts</li>
@@ -492,6 +491,6 @@ with st.expander("About QuantPilot"):
     </div>
     """, unsafe_allow_html=True)
 
-st.markdown("""<div class="copyright-text">
+st.markdown("""<div class="copyright-text el-garamond">
 &copy; 2025 QuantPilot. All rights reserved.
 </div>""", unsafe_allow_html=True)
