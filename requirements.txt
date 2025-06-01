@@ -2,4 +2,6 @@ streamlit
 yfinance
 pandas
 plotly
+transformers
+fpdf
 numpy
