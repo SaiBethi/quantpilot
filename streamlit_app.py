@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 
 st.set_page_config(page_title="QuantPilot: Robinhood LEGEND", layout="wide")
 
-# Custom CSS for Robinhood/fintech look
+# Enhanced CSS for Robinhood/fintech look with subtle transitions and improved mobile
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;600&family=Inter:wght@400;600;700&display=swap');
@@ -45,7 +45,9 @@ st.markdown("""
         color: #e0e0e0;
         width: 270px;
         font-family: 'EB Garamond',serif;
+        transition: border 0.18s;
     }
+    .rh-search:focus { border: 1.5px solid #00c805;}
     .rh-sidebar {
         background: #091522;
         min-width: 74px;
@@ -75,6 +77,7 @@ st.markdown("""
     .rh-nav-icon.active, .rh-nav-icon:hover {
         border-color: #00c805;
         background: #13243a;
+        box-shadow: 0 3px 10px #00c80522;
     }
     .rh-nav-label {
         font-size: 0.92em;
@@ -105,7 +108,21 @@ st.markdown("""
     .stat-card:hover { transform: translateY(-4px) scale(1.025); box-shadow: 0 6px 18px #00c80522; }
     .stat-label { color: #7db5a8; font-weight: 600; font-size:1em;}
     .stat-value { color: #e0e0e0; font-size:1.32em; font-weight: 700;}
+    .indicator-card, .ai-suggestion {
+        margin: 0.7em 0 1.2em 0;
+        font-size: 1.15em;
+    }
+    .ai-suggestion {
+        background: #1a1a1a !important;
+        border: 1.5px solid #00c805;
+    }
     ::placeholder { color: #7db5a8 !important; opacity: 1 !important; }
+    @media (max-width: 900px) {
+        .block-container, .main {padding-left: 1.1em !important;}
+        .rh-navbar {flex-direction:column;gap:0.7em;}
+        .rh-sidebar {min-width: 45px; max-width:45px;}
+        .logo-text {font-size:1.12em;}
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -139,8 +156,7 @@ st.markdown('<div class="rh-sidebar">' + "".join([
 # Use columns to offset sidebar for main content
 st.markdown('<div style="margin-left:74px;padding-top:2.7em"></div>', unsafe_allow_html=True)
 
-# --- MAIN CONTENT ---
-# --- Stock selection UI ---
+# --- Enhanced MAIN CONTENT ---
 if "analyze" not in st.session_state or not st.session_state["analyze"]:
     with st.form("stock_select_form", clear_on_submit=False):
         st.markdown("<h2 style='font-size:1.32em;color:#00c805;'>Choose stocks & your dashboard options</h2>", unsafe_allow_html=True)
@@ -174,6 +190,7 @@ if "analyze" not in st.session_state or not st.session_state["analyze"]:
         st.experimental_rerun()
     st.stop()
 
+# --- Data functions and processing ---
 tickers = st.session_state["tickers"]
 start = st.session_state["start"]
 end = st.session_state["end"]
@@ -226,6 +243,17 @@ def obv(close, volume):
     direction = np.sign(close.diff()).fillna(0)
     return (volume * direction).cumsum()
 
+def sharpe_ratio(returns, risk_free=0):
+    mean_ret = returns.mean()
+    std_ret = returns.std()
+    if std_ret == 0 or np.isnan(std_ret): return "-"
+    return (mean_ret - risk_free) / std_ret
+
+def drawdown(close):
+    roll_max = close.cummax()
+    dd = (close - roll_max)/roll_max
+    return dd
+
 # --- Top Movers Bar ---
 def get_top_movers(data, tickers):
     movers = []
@@ -236,7 +264,7 @@ def get_top_movers(data, tickers):
             prev = data[close_col].dropna().iloc[-2]
             pct = ((last - prev) / prev) * 100
             movers.append((ticker, pct, last))
-    return sorted(movers, key=lambda x: -abs(x[1]))  # abs for biggest swings
+    return sorted(movers, key=lambda x: -abs(x[1]))
 
 top_movers = get_top_movers(data, tickers)
 if top_movers:
@@ -252,10 +280,10 @@ if top_movers:
         )
     st.markdown("</div>", unsafe_allow_html=True)
 
-# --- Dashboard Grid for Each Stock ---
 if isinstance(data.columns, pd.MultiIndex):
     data.columns = ["_".join([str(i) for i in col if i]) for col in data.columns.values]
 
+# --- Dashboard Grid for Each Stock ---
 for ticker in tickers:
     close_col = f"Close_{ticker}" if f"Close_{ticker}" in data.columns else f"{ticker}_Close"
     open_col = f"Open_{ticker}" if f"Open_{ticker}" in data.columns else f"{ticker}_Open"
@@ -283,9 +311,11 @@ for ticker in tickers:
     df['MACD_Signal'] = signal_line
     df['MACD_Hist'] = macd_hist
     df['OBV'] = obv(df[close_col], df[vol_col])
+    df['Sharpe'] = sharpe_ratio(df[close_col].pct_change().dropna())
+    df['Drawdown'] = drawdown(df[close_col])
 
     st.markdown(f"<div class='el-garamond' style='font-size:1.22em;margin-top:1.1em;margin-bottom:0.4em;'><b>{ticker}</b> — <span style='color:#ffd700;'>Market Analysis</span></div>", unsafe_allow_html=True)
-    c1, c2, c3, c4 = st.columns(4)
+    c1, c2, c3, c4, c5 = st.columns(5)
     with c1:
         st.markdown("<div class='stat-card'><div class='stat-label'>Price (Candlestick)</div>", unsafe_allow_html=True)
         fig = go.Figure()
@@ -298,6 +328,8 @@ for ticker in tickers:
         fig.update_layout(margin=dict(l=0,r=0,t=10,b=10),height=180,template="plotly_dark",showlegend=False)
         st.plotly_chart(fig, use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("<div class='stat-card'><div class='stat-label'>Drawdown</div>", unsafe_allow_html=True)
+        st.line_chart(df['Drawdown'], use_container_width=True)
     with c2:
         st.markdown("<div class='stat-card'><div class='stat-label'>Volume</div>", unsafe_allow_html=True)
         st.bar_chart(df[vol_col], use_container_width=True)
@@ -308,6 +340,8 @@ for ticker in tickers:
         st.line_chart(df['Daily % Change'], use_container_width=True)
         st.markdown("<div class='stat-card'><div class='stat-label'>Volatility (20d)</div>", unsafe_allow_html=True)
         st.line_chart(df['Volatility (20d)'], use_container_width=True)
+        st.markdown("<div class='stat-card'><div class='stat-label'>Sharpe Ratio</div>", unsafe_allow_html=True)
+        st.line_chart(pd.Series([df['Sharpe'].iloc[0]]*len(df), index=df.index), use_container_width=True)
     with c4:
         st.markdown("<div class='stat-card'><div class='stat-label'>MACD</div>", unsafe_allow_html=True)
         mfig = go.Figure()
@@ -318,8 +352,10 @@ for ticker in tickers:
         st.plotly_chart(mfig, use_container_width=True)
         st.markdown("<div class='stat-card'><div class='stat-label'>OBV (On-Balance Volume)</div>", unsafe_allow_html=True)
         st.line_chart(df['OBV'], use_container_width=True)
+    with c5:
+        st.markdown("<div class='stat-card'><div class='stat-label'>Moving Avg. Table</div>", unsafe_allow_html=True)
+        st.dataframe(df[[close_col, 'MA20','MA50','MA100','MA200','EMA20','EMA50','EMA100','EMA200']].tail(15), use_container_width=True, height=300)
 
-    # --- Key Stats + AI Suggestion Split ---
     left, right = st.columns([1.5, 1.5], gap="large")
     with left:
         st.markdown("<div class='indicator-card'><b>📋 Key Stats for this Period</b>", unsafe_allow_html=True)
@@ -333,6 +369,8 @@ for ticker in tickers:
         <tr><th>Total Trading Days</th><td>{len(df)}</td></tr>
         <tr><th>Mean Volatility (20d)</th><td>{df['Volatility (20d)'].dropna().mean():.3f}</td></tr>
         <tr><th>Mean Daily % Change</th><td>{df['Daily % Change'].dropna().mean():.3f}%</td></tr>
+        <tr><th>Sharpe Ratio</th><td>{df['Sharpe'].iloc[0] if df['Sharpe'].iloc[0] != '-' else '-'}</td></tr>
+        <tr><th>Max Drawdown</th><td>{df['Drawdown'].min():.2%}</td></tr>
         </table>
         """
         st.markdown(stat_table, unsafe_allow_html=True)
@@ -383,14 +421,13 @@ for ticker in tickers:
         else:
             ai_text.append("🔄 Momentum is neutral.")
 
-        # --- Final verdict logic
         if verdict == "BUY":
             safe_pct = 0.3
             risky_pct = 0.6 if recent_volatility < 1.2 * avg_volatility else 0.3
         elif verdict == "SELL":
             safe_pct = 0.3
             risky_pct = 0.7 if recent_volatility > 1.2 * avg_volatility else 0.45
-        else:  # HOLD or unclear
+        else:
             safe_pct = 0.1
             risky_pct = 0.2
 
@@ -434,7 +471,7 @@ for ticker in tickers:
                 )
             else:
                 allocation_block = f"Enter at least 2 shares owned to see recommended shares to sell."
-        else:  # HOLD or unclear
+        else:
             st.markdown(
                 f"<span class='el-garamond' style='font-size:1.02em; margin-bottom:0.1em; display:block; color:#fff;'>{shares_help}</span>",
                 unsafe_allow_html=True
