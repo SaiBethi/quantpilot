@@ -6,7 +6,7 @@ import numpy as np
 
 st.set_page_config(page_title="QuantPilot: Robinhood LEGEND", layout="wide")
 
-# --- Enhanced Robinhood/Legend/EB Garamond CSS for white text, soft shadow, modern look, centered, responsive, black input fields ---
+# --- Enhanced CSS: white text everywhere, black input fields with white text, modern cards, green legend, and robust selectbox styling ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
@@ -34,8 +34,7 @@ st.markdown("""
     /* Input fields: black background, white text, keep Streamlit stepper (+/-) buttons */
     .stTextInput input,
     .stNumberInput input,
-    .stDateInput input,
-    .stSelectbox div[data-baseweb="select"] input {
+    .stDateInput input {
         background: #111 !important;
         color: #fff !important;
         font-family: 'EB Garamond', serif !important;
@@ -55,6 +54,32 @@ st.markdown("""
     .stNumberInput button:hover {
         background: #00c805 !important;
         color: #111 !important;
+    }
+    /* Selectbox (Interval) styling */
+    .stSelectbox [data-baseweb="select"] {
+        background: #111 !important;
+        color: #fff !important;
+        border-radius: 0.6em !important;
+        border: 1.7px solid #333 !important;
+        font-family: 'EB Garamond', serif !important;
+        font-size: 1.09em !important;
+        box-shadow: 0 2px 8px #0006 !important;
+    }
+    .stSelectbox [data-baseweb="select"] * {
+        color: #fff !important;
+        background: #111 !important;
+        font-family: 'EB Garamond', serif !important;
+    }
+    .stSelectbox [data-baseweb="popover"] {
+        background: #111 !important;
+        color: #fff !important;
+    }
+    .stSelectbox [data-baseweb="option"] {
+        background: #111 !important;
+        color: #fff !important;
+    }
+    .stSelectbox [data-baseweb="select"] svg {
+        color: #fff !important;
     }
     .stTextInput input::placeholder,
     .stNumberInput input::placeholder,
@@ -220,7 +245,12 @@ with st.expander("① Start Here: Select Tickers and Date Range", expanded=True)
     with col2:
         end = st.date_input("End date", pd.to_datetime("today"))
     with col3:
-        interval = st.selectbox("Interval", ["1d", "1wk", "1mo"], index=0)
+        interval = st.selectbox(
+            "Interval",
+            ["1m", "5m", "15m", "30m", "1h", "1d", "1wk", "1mo"],
+            index=5,
+            help="Select the data interval: 1 minute, 5 minutes, 15 minutes, 30 minutes, 1 hour, 1 day, 1 week, 1 month"
+        )
 
 if st.button("Get Data & Analyze", key="getdata"):
     st.session_state["data_loaded"] = True
