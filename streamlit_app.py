@@ -3,22 +3,23 @@ import yfinance as yf
 import pandas as pd
 import plotly.graph_objects as go
 import numpy as np
+from datetime import datetime
 
 st.set_page_config(page_title="QuantPilot: Robinhood LEGEND", layout="wide")
 
-# --- Enhanced CSS: all dropdowns, popovers, and calendar are black, text is white, modern cards, green legend, steppers preserved ---
+# --- CSS: All dropdowns, popovers, and inputs are black with white text. No calendar styling needed. ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
     html, body, [class*="css"], .stApp {
-        font-family: 'EB+Garamond', serif !important;
+        font-family: 'EB Garamond', serif !important;
         background: #0c1b2a !important;
         color: #fff !important;
     }
     .block-container {
         background: #0c1b2a !important;
         color: #fff !important;
-        font-family: 'EB+Garamond', serif !important;
+        font-family: 'EB Garamond', serif !important;
         padding-top: 2.5rem !important;
         padding-left: 5vw !important;
         padding-right: 5vw !important;
@@ -26,14 +27,13 @@ st.markdown("""
         margin-left: auto !important;
         margin-right: auto !important;
     }
-    *, .stText, .stMarkdown, .stButton>button, .stDownloadButton>button, .stSelectbox>div, .stNumberInput>div>input, .stTextInput>div>input, .stDateInput>div>input, .stDataFrame, .stCheckbox>label, .stExpanderHeader {
+    *, .stText, .stMarkdown, .stButton>button, .stDownloadButton>button, .stSelectbox>div, .stNumberInput>div>input, .stTextInput>div>input, .stDataFrame, .stCheckbox>label, .stExpanderHeader {
         font-family: 'EB Garamond', serif !important;
         color: #fff !important;
         letter-spacing: 0.01em;
     }
     .stTextInput input,
-    .stNumberInput input,
-    .stDateInput input {
+    .stNumberInput input {
         background: #111 !important;
         color: #fff !important;
         font-family: 'EB Garamond', serif !important;
@@ -55,13 +55,10 @@ st.markdown("""
         color: #111 !important;
     }
     .stTextInput input::placeholder,
-    .stNumberInput input::placeholder,
-    .stDateInput input::placeholder,
-    .stSelectbox div[data-baseweb="select"] input::placeholder {
+    .stNumberInput input::placeholder {
         color: #aaa !important;
         opacity: 1 !important;
     }
-    /* ---- SELECTBOX, DROPDOWNS, POPOVERS FULL BLACK ---- */
     .stSelectbox [data-baseweb="select"] {
         background: #111 !important;
         color: #fff !important;
@@ -97,50 +94,6 @@ st.markdown("""
     .stSelectbox [data-baseweb="select"] svg {
         color: #fff !important;
     }
-    /* --- Date picker calendar popover FULL BLACK override --- */
-    /* Popover and calendar container */
-    .stDateInput [data-baseweb="popover"],
-    .stDateInput [data-baseweb="calendar"] {
-        background: #111 !important;
-        color: #fff !important;
-        border-radius: 0.6em !important;
-        border: 1.5px solid #333 !important;
-        z-index: 9999 !important;
-    }
-    /* Calendar header bar (month/year/chevrons) */
-    .stDateInput [data-baseweb="calendar-header"] {
-        background: #111 !important;
-        color: #fff !important;
-    }
-    /* Day grid and weekdays */
-    .stDateInput [data-baseweb="calendar"] * {
-        color: #fff !important;
-        background: #111 !important;
-        font-family: 'EB Garamond', serif !important;
-    }
-    /* Normal days */
-    .stDateInput [data-baseweb="calendar-day"]:not([aria-disabled="true"]) {
-        background: #18191d !important;
-        color: #fff !important;
-        border-radius: 0.5em !important;
-    }
-    /* Hover and selected day */
-    .stDateInput [data-baseweb="calendar-day"]:hover,
-    .stDateInput [data-baseweb="calendar-day"][aria-selected="true"] {
-        background: #00c805 !important;
-        color: #111 !important;
-    }
-    /* Today circle */
-    .stDateInput [data-baseweb="calendar-day"][aria-current="date"] {
-        border: 2px solid #00c805 !important;
-    }
-    /* Disabled days */
-    .stDateInput [data-baseweb="calendar-day"][aria-disabled="true"] {
-        color: #444 !important;
-        background: #111 !important;
-        opacity: 0.55 !important;
-    }
-    /* --- Button and card styles remain --- */
     .stButton>button, .stDownloadButton>button {
         font-weight: 600;
         font-size: 1.09em !important;
@@ -294,9 +247,9 @@ with st.expander("① Start Here: Select Tickers and Date Range", expanded=True)
     ]
     col1, col2, col3 = st.columns([2, 2, 2])
     with col1:
-        start = st.date_input("Start date", pd.to_datetime("2023-01-01"))
+        start_str = st.text_input("Start date (YYYY-MM-DD):", value="2023-01-01", help="Type the date in format YYYY-MM-DD")
     with col2:
-        end = st.date_input("End date", pd.to_datetime("today"))
+        end_str = st.text_input("End date (YYYY-MM-DD):", value=datetime.today().strftime("%Y-%m-%d"), help="Type the date in format YYYY-MM-DD")
     with col3:
         interval = st.selectbox(
             "Interval",
@@ -306,6 +259,12 @@ with st.expander("① Start Here: Select Tickers and Date Range", expanded=True)
         )
 
 if st.button("Get Data & Analyze", key="getdata"):
+    try:
+        start = pd.to_datetime(start_str).strftime("%Y-%m-%d")
+        end = pd.to_datetime(end_str).strftime("%Y-%m-%d")
+    except Exception:
+        st.error("Please enter valid dates in YYYY-MM-DD format.")
+        st.stop()
     st.session_state["data_loaded"] = True
     st.session_state["stock_data"] = yf.download(
         tickers, start=start, end=end, interval=interval, group_by='ticker', auto_adjust=True
