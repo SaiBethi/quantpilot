@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 import numpy as np
 from datetime import datetime
 
-# --- UI and styling (unchanged) ---
+# --- UI and styling (unchanged except border tweak) ---
 st.set_page_config(page_title="QuantPilot: Robinhood LEGEND", layout="wide")
 st.markdown("""
 <style>
@@ -19,12 +19,12 @@ html, body, [class*="css"], .stApp {
     background: #0c1b2a !important;
     color: #fff !important;
     font-family: 'EB Garamond', serif !important;
-    max-width: 100vw !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
+    max-width: 1300px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
     padding-top: 2.5rem !important;
-    padding-left: 0vw !important;
-    padding-right: 0vw !important;
+    padding-left: 0.5in !important;
+    padding-right: 0.5in !important;
 }
 .stApp {
     overflow-x: hidden !important;
@@ -218,7 +218,6 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# --- Responsive Quick Legend ---
 with st.expander("📖 Quick Chart/Factor Legend"):
     st.markdown("""
     <div class="rh-quick-legend">
@@ -376,47 +375,44 @@ if st.session_state["data_loaded"]:
             df['Sharpe'] = sharpe_ratio(df[close_col].pct_change().dropna())
             df['Drawdown'] = drawdown(df[close_col])
 
-            # --- TOP ROW: Volatility (left, very long), Padding (center), Moving Avg Table (right, very long) ---
-            top_col1, top_col2, top_col3 = st.columns([2.5, 0.2, 2.5], gap="small")
+            # --- Top Row: Volatility | Price Chart | MA Table ---
+            top_col1, top_col2, top_col3 = st.columns([1.2, 3.5, 1.5], gap="medium")
             with top_col1:
                 st.markdown("<div class='stat-card'><div class='stat-label'>Volatility (20d)</div>", unsafe_allow_html=True)
-                st.line_chart(df['Volatility (20d)'], use_container_width=True, height=600)
+                st.line_chart(df['Volatility (20d)'], use_container_width=True, height=480)
             with top_col2:
-                st.markdown("")  # Blank center for spacing/padding
+                st.markdown("<div style='height:24px'/></div>", unsafe_allow_html=True)
+                main_candle = go.Figure()
+                main_candle.add_trace(go.Candlestick(
+                    x=df.index, open=df[open_col], high=df[high_col],
+                    low=df[low_col], close=df[close_col],
+                    name='Candlestick',
+                    increasing_line_color="#00c805", decreasing_line_color="#ff4c4c"
+                ))
+                for m, colr in [("MA20", "cyan"), ("MA50", "#00c805"), ("MA100", "#aaa"), ("MA200", "#fff")]:
+                    main_candle.add_trace(go.Scatter(
+                        x=df.index, y=df[m], name=m, line=dict(color=colr, width=1.5, dash="dot")
+                    ))
+                main_candle.update_layout(
+                    template="plotly_dark",
+                    height=480,
+                    margin=dict(l=10, r=10, t=18, b=10),
+                    xaxis=dict(title=None, rangeslider=dict(visible=False)),
+                    yaxis=dict(title=None),
+                    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5, font=dict(family="EB Garamond, serif", size=13)),
+                )
+                st.plotly_chart(main_candle, use_container_width=True)
             with top_col3:
                 st.markdown("<div class='stat-card'><div class='stat-label'>Moving Avg. Table</div>", unsafe_allow_html=True)
                 st.dataframe(
                     df[[close_col, 'MA20','MA50','MA100','MA200','EMA20','EMA50','EMA100','EMA200']].tail(60),
                     use_container_width=True,
-                    height=600
+                    height=480
                 )
 
-            # --- BRING PRICE CHART DOWN ---
-            st.markdown("<div style='height:24px'/></div>", unsafe_allow_html=True)
-
-            main_candle = go.Figure()
-            main_candle.add_trace(go.Candlestick(
-                x=df.index, open=df[open_col], high=df[high_col],
-                low=df[low_col], close=df[close_col],
-                name='Candlestick',
-                increasing_line_color="#00c805", decreasing_line_color="#ff4c4c"
-            ))
-            # Overlay Moving Averages
-            for m, colr in [("MA20", "cyan"), ("MA50", "#00c805"), ("MA100", "#aaa"), ("MA200", "#fff")]:
-                main_candle.add_trace(go.Scatter(
-                    x=df.index, y=df[m], name=m, line=dict(color=colr, width=1.5, dash="dot")
-                ))
-            main_candle.update_layout(
-                template="plotly_dark",
-                height=440,
-                margin=dict(l=10, r=10, t=18, b=10),
-                xaxis=dict(title=None, rangeslider=dict(visible=False)),
-                yaxis=dict(title=None),
-                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5, font=dict(family="EB Garamond, serif", size=13)),
-            )
-            st.plotly_chart(main_candle, use_container_width=True)
-
-            # --- VOLUME (bigger) ---
+            # --- VOLUME (bigger, under price) ---
+            st.markdown("<div style='height:8px'/></div>", unsafe_allow_html=True)
+            st.markdown("<div style='margin-top:-1em'/>", unsafe_allow_html=True)
             vol_fig = go.Figure()
             vol_fig.add_trace(go.Bar(
                 x=df.index, y=df[vol_col], marker_color="#444", name="Volume"
@@ -424,15 +420,15 @@ if st.session_state["data_loaded"]:
             vol_fig.update_layout(
                 margin=dict(l=10, r=10, t=8, b=10),
                 template="plotly_dark",
-                height=220,
+                height=210,
                 showlegend=False,
                 xaxis=dict(visible=False),
                 yaxis=dict(title="Volume", tickfont=dict(size=12, family="EB Garamond, serif"))
             )
             st.plotly_chart(vol_fig, use_container_width=True)
 
-            # --- BOTTOM: Drawdown, RSI, OBV (top row), MACD + Daily % Change (bottom row, expanded) ---
-            bot_row1 = st.columns([1.5, 1.5, 2.2])
+            # --- Next: Drawdown | RSI | MACD (row 1), OBV | Daily % Change (row 2) ---
+            bot_row1 = st.columns([1.5, 1.5, 1.5])
             with bot_row1[0]:
                 st.markdown("<div class='stat-card'><div class='stat-label'>Drawdown</div>", unsafe_allow_html=True)
                 st.line_chart(df['Drawdown'], use_container_width=True, height=200)
