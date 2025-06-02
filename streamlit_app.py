@@ -231,7 +231,17 @@ st.markdown("""
 with st.expander("📖 Quick Chart/Factor Legend"):
     st.markdown("""
     <div class="rh-quick-legend">
-        📈 Candle: Price moves • 📊 MAs: Trend lines • ⚡ % Chg: Daily momentum • 🌪 Volatility: Risk • 🔊 Volume • 🤖 AI: Smart suggestion • RSI • MACD • OBV • Sharpe • Drawdown
+    <b>Candlestick:</b> Shows open, high, low, and close prices for each time period.<br>
+    <b>Moving Averages (MAs):</b> Indicates short and long-term price trends.<br>
+    <b>% Change:</b> Daily percentage price change, reveals momentum.<br>
+    <b>Volatility:</b> Measures price fluctuation (risk).<br>
+    <b>Volume:</b> Number of shares traded, confirms trend moves.<br>
+    <b>RSI:</b> Overbought/oversold momentum signal.<br>
+    <b>MACD:</b> Trend-following momentum indicator.<br>
+    <b>OBV:</b> Volume flow used to anticipate price moves.<br>
+    <b>Sharpe Ratio:</b> Risk-adjusted return measurement.<br>
+    <b>Drawdown:</b> Largest peak-to-trough loss.<br>
+    <b>AI Suggestion:</b> Smart rule-based buy/hold/sell idea.
     </div>
     """, unsafe_allow_html=True)
 
