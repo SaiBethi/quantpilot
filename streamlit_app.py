@@ -413,7 +413,36 @@ if st.session_state["data_loaded"]:
             st.plotly_chart(vol_fig, use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
 
-            # --- Rest of your UI (unchanged) ---
+            # --- ALL OTHER CHARTS, RESPONSIVE ---
+            chart_cols = st.columns([1.8,1.2,1.2,1.2,2])
+            with chart_cols[0]:
+                st.markdown("<div class='stat-card'><div class='stat-label'>Drawdown</div>", unsafe_allow_html=True)
+                st.line_chart(df['Drawdown'], use_container_width=True)
+            with chart_cols[1]:
+                st.markdown("<div class='stat-card'><div class='stat-label'>RSI (14d)</div>", unsafe_allow_html=True)
+                st.line_chart(df['RSI'], use_container_width=True)
+            with chart_cols[2]:
+                st.markdown("<div class='stat-card'><div class='stat-label'>Daily % Change</div>", unsafe_allow_html=True)
+                st.line_chart(df['Daily % Change'], use_container_width=True)
+                st.markdown("<div class='stat-card'><div class='stat-label'>Volatility (20d)</div>", unsafe_allow_html=True)
+                st.line_chart(df['Volatility (20d)'], use_container_width=True)
+                st.markdown("<div class='stat-card'><div class='stat-label'>Sharpe Ratio</div>", unsafe_allow_html=True)
+                st.line_chart(pd.Series([df['Sharpe'].iloc[0]]*len(df), index=df.index), use_container_width=True)
+            with chart_cols[3]:
+                st.markdown("<div class='stat-card'><div class='stat-label'>MACD</div>", unsafe_allow_html=True)
+                mfig = go.Figure()
+                mfig.add_trace(go.Scatter(x=df.index, y=df['MACD'], name="MACD", line=dict(color="#00c805")))
+                mfig.add_trace(go.Scatter(x=df.index, y=df['MACD_Signal'], name="Signal", line=dict(color="#e0e0e0")))
+                mfig.add_trace(go.Bar(x=df.index, y=df['MACD_Hist'], name="Histogram", marker_color="#aaf"))
+                mfig.update_layout(template="plotly_dark",margin=dict(l=0,r=0,t=8,b=8),height=120,showlegend=False)
+                st.plotly_chart(mfig, use_container_width=True)
+                st.markdown("<div class='stat-card'><div class='stat-label'>OBV (On-Balance Volume)</div>", unsafe_allow_html=True)
+                st.line_chart(df['OBV'], use_container_width=True)
+            with chart_cols[4]:
+                st.markdown("<div class='stat-card'><div class='stat-label'>Moving Avg. Table</div>", unsafe_allow_html=True)
+                st.dataframe(df[[close_col, 'MA20','MA50','MA100','MA200','EMA20','EMA50','EMA100','EMA200']].tail(15), use_container_width=True, height=295)
+
+            # --- Rest of the UI (unchanged) ---
             left, right = st.columns(2)
             with left:
                 st.markdown("<div class='indicator-card'><b>📋 Key Stats for this Period</b>", unsafe_allow_html=True)
