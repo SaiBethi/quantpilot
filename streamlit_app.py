@@ -5,218 +5,208 @@ import plotly.graph_objects as go
 import numpy as np
 from datetime import datetime
 
+# ✅ Step 1: Enable wide layout for responsive design
 st.set_page_config(page_title="QuantPilot: Robinhood LEGEND", layout="wide")
 
-# --- CSS: All dropdowns, popovers, and inputs are black with white text. No calendar styling needed. ---
+# --- Responsive CSS for dark theme, cards, and inputs ---
 st.markdown("""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
-    html, body, [class*="css"], .stApp {
-        font-family: 'EB Garamond', serif !important;
-        background: #0c1b2a !important;
-        color: #fff !important;
-    }
-    .block-container {
-        background: #0c1b2a !important;
-        color: #fff !important;
-        font-family: 'EB Garamond', serif !important;
-        padding-top: 2.5rem !important;
-        padding-left: 5vw !important;
-        padding-right: 5vw !important;
-        max-width: 1200px !important;
-        margin-left: auto !important;
-        margin-right: auto !important;
-    }
-    *, .stText, .stMarkdown, .stButton>button, .stDownloadButton>button, .stSelectbox>div, .stNumberInput>div>input, .stTextInput>div>input, .stDataFrame, .stCheckbox>label, .stExpanderHeader {
-        font-family: 'EB Garamond', serif !important;
-        color: #fff !important;
-        letter-spacing: 0.01em;
-    }
-    .stTextInput input,
-    .stNumberInput input {
-        background: #111 !important;
-        color: #fff !important;
-        font-family: 'EB Garamond', serif !important;
-        font-size: 1.09em !important;
-        border-radius: 0.6em !important;
-        border: 1.7px solid #333 !important;
-        box-shadow: 0 2px 8px #0006 !important;
-        padding-left: 8px !important;
-    }
-    .stNumberInput button {
-        color: #fff !important;
-        background: #18191d !important;
-        border-radius: 0.5em !important;
-        border: 1.2px solid #333 !important;
-        font-size: 1.1em !important;
-    }
-    .stNumberInput button:hover {
-        background: #00c805 !important;
-        color: #111 !important;
-    }
-    .stTextInput input::placeholder,
-    .stNumberInput input::placeholder {
-        color: #aaa !important;
-        opacity: 1 !important;
-    }
-    .stSelectbox [data-baseweb="select"] {
-        background: #111 !important;
-        color: #fff !important;
-        border-radius: 0.6em !important;
-        border: 1.7px solid #333 !important;
-        font-family: 'EB Garamond', serif !important;
-        font-size: 1.09em !important;
-        box-shadow: 0 2px 8px #0006 !important;
-    }
-    .stSelectbox [data-baseweb="select"] * {
-        color: #fff !important;
-        background: #111 !important;
-        font-family: 'EB Garamond', serif !important;
-    }
-    [role="listbox"], [data-baseweb="menu"], [data-baseweb="popover"] {
-        background: #111 !important;
-        color: #fff !important;
-        border-radius: 0.6em !important;
-        border: 1.5px solid #333 !important;
-        font-family: 'EB Garamond', serif !important;
-    }
-    [role="option"], [data-baseweb="option"] {
-        background: #111 !important;
-        color: #fff !important;
-        font-family: 'EB Garamond', serif !important;
-        font-size: 1.09em !important;
-    }
-    [role="option"]:hover, [data-baseweb="option"]:hover,
-    [role="option"][aria-selected="true"], [data-baseweb="option"][aria-selected="true"] {
-        background: #00c805 !important;
-        color: #111 !important;
-    }
-    .stSelectbox [data-baseweb="select"] svg {
-        color: #fff !important;
-    }
-    .stButton>button, .stDownloadButton>button {
-        font-weight: 600;
-        font-size: 1.09em !important;
-        border-radius: 13px;
-        background: #12243a !important;
-        color: #fff !important;
-        border: 1.5px solid #20344e;
-        margin-bottom: 0.5em;
-        transition: background 0.14s, color 0.14s, box-shadow 0.18s;
-        box-shadow: 0 3px 10px #0004;
-    }
-    .stButton>button:hover, .stDownloadButton>button:hover {
-        background: #18191d !important;
-        color: #fff !important;
-        box-shadow: 0 3px 18px #00c80533;
-    }
-    .rh-legend-header {
-        background: #18191d;
-        border-radius: 1.2em;
-        margin-top: 0.8em;
-        margin-bottom: 1.2em;
-        padding: 0.6em 0 0.4em 0;
-        color: #fff;
-        box-shadow: 0 2px 10px #0002;
-        text-align: center;
-        font-size: 2.04em;
-        letter-spacing: 0.01em;
-        font-weight: 800;
-        font-family: 'EB Garamond', serif !important;
-    }
-    .rh-legend-header .legend-green {
-        color: #00c805 !important;
-        font-size: 0.85em;
-        font-weight: 700;
-        letter-spacing: 0.01em;
-        margin-left: 0.3em;
-    }
-    .rh-quick-legend {
-        font-size: 1.11em;
-        color: #fff;
-        text-align: center;
-        margin-bottom: 0.6em;
-        font-family: 'EB Garamond', serif !important;
-    }
-    .indicator-card, .stat-card, .ai-suggestion {
-        border-radius: 1em;
-        box-shadow: 0 2px 8px #0003;
-        margin-bottom: 1em;
-        border: 1.5px solid #20344e;
-        font-family: 'EB Garamond', serif !important;
-        background: #18191d !important;
-        color: #fff !important;
-    }
-    .stat-card {
-        padding: 1.1em 1em 0.8em 1em;
-        text-align: center;
-        margin-bottom: 0.9em;
-        font-size:1.01em;
-    }
-    .stat-label { color: #fff; font-weight: 600; font-size:1.06em;}
-    .stat-value { color: #fff; font-size:1.28em; font-weight: 700;}
-    .ai-suggestion {
-        background: #18191d !important;
-        border: 1.5px solid #00c805;
-        font-size: 1.15em;
-        font-weight: 500;
-        padding: 1.2em 1.5em;
-        margin: 0.7em 0 1.3em 0;
-        color: #fff !important;
-    }
-    .section-header {
-        font-size: 1.44em !important;
-        margin-top: 1em !important;
-        margin-bottom: 0.56em !important;
-        font-weight: 700 !important;
-        color: #fff !important;
-        letter-spacing: 0.01em;
-        font-family: 'EB Garamond', serif !important;
-    }
-    .stat-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 0.5em 0 1.1em 0;
-        font-size: 1.11em;
-        color: #fff !important;
-        font-family: 'EB Garamond', serif !important;
-    }
-    .stat-table th, .stat-table td {
-        border: none;
-        text-align: left;
-        padding: 0.27em 1em 0.27em 0;
-        vertical-align: middle;
-        color: #fff !important;
-        font-family: 'EB Garamond', serif !important;
-    }
-    .stat-table th {
-        color: #fff !important;
-        font-weight: 700;
-        background: #162033;
-    }
-    .stat-table td {
-        color: #fff !important;
-    }
-    .project-text {
-        color: #fff !important;
-        font-family: 'EB Garamond', serif !important;
-        font-size: 1.13em !important;
-    }
-    .copyright-text {
-        text-align:center;
-        color:#888;
-        font-size:1.12em;
-        margin-top:2.5em;
-        margin-bottom:1em;
-        font-family:'EB Garamond',serif !important;
-    }
-    .stDataFrame {font-size:1.03em; font-family:'EB Garamond',serif !important; color: #fff;}
-    @media (max-width: 900px) {
-        .block-container, .main {padding-left: 1.1em !important;}
-        .rh-legend-header {font-size: 1.18em;}
-        .indicator-card, .stat-card, .ai-suggestion {padding: 0.7em 0.6em;}
-    }
-    </style>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
+html, body, [class*="css"], .stApp {
+    font-family: 'EB Garamond', serif !important;
+    background: #0c1b2a !important;
+    color: #fff !important;
+}
+.block-container {
+    background: #0c1b2a !important;
+    color: #fff !important;
+    font-family: 'EB Garamond', serif !important;
+    max-width: 1200px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-top: 2.5rem !important;
+    padding-left: 5vw !important;
+    padding-right: 5vw !important;
+}
+*, .stText, .stMarkdown, .stButton>button, .stDownloadButton>button, .stSelectbox>div, .stNumberInput>div>input, .stTextInput>div>input, .stDataFrame, .stCheckbox>label, .stExpanderHeader {
+    font-family: 'EB Garamond', serif !important;
+    color: #fff !important;
+    letter-spacing: 0.01em;
+}
+.stTextInput input,
+.stNumberInput input {
+    background: #111 !important;
+    color: #fff !important;
+    font-size: 1.09em !important;
+    border-radius: 0.6em !important;
+    border: 1.7px solid #333 !important;
+    box-shadow: 0 2px 8px #0006 !important;
+    padding-left: 8px !important;
+}
+.stNumberInput button {
+    color: #fff !important;
+    background: #18191d !important;
+    border-radius: 0.5em !important;
+    border: 1.2px solid #333 !important;
+    font-size: 1.1em !important;
+}
+.stNumberInput button:hover {
+    background: #00c805 !important;
+    color: #111 !important;
+}
+.stTextInput input::placeholder,
+.stNumberInput input::placeholder {
+    color: #aaa !important;
+    opacity: 1 !important;
+}
+.stSelectbox [data-baseweb="select"] {
+    background: #111 !important;
+    color: #fff !important;
+    border-radius: 0.6em !important;
+    border: 1.7px solid #333 !important;
+    font-size: 1.09em !important;
+    box-shadow: 0 2px 8px #0006 !important;
+}
+.stSelectbox [data-baseweb="select"] * {
+    color: #fff !important;
+    background: #111 !important;
+}
+[role="listbox"], [data-baseweb="menu"], [data-baseweb="popover"] {
+    background: #111 !important;
+    color: #fff !important;
+    border-radius: 0.6em !important;
+    border: 1.5px solid #333 !important;
+}
+[role="option"], [data-baseweb="option"] {
+    background: #111 !important;
+    color: #fff !important;
+    font-size: 1.09em !important;
+}
+[role="option"]:hover, [data-baseweb="option"]:hover,
+[role="option"][aria-selected="true"], [data-baseweb="option"][aria-selected="true"] {
+    background: #00c805 !important;
+    color: #111 !important;
+}
+.stSelectbox [data-baseweb="select"] svg {
+    color: #fff !important;
+}
+.stButton>button, .stDownloadButton>button {
+    font-weight: 600;
+    font-size: 1.09em !important;
+    border-radius: 13px;
+    background: #12243a !important;
+    color: #fff !important;
+    border: 1.5px solid #20344e;
+    margin-bottom: 0.5em;
+    transition: background 0.14s, color 0.14s, box-shadow 0.18s;
+    box-shadow: 0 3px 10px #0004;
+}
+.stButton>button:hover, .stDownloadButton>button:hover {
+    background: #18191d !important;
+    color: #fff !important;
+    box-shadow: 0 3px 18px #00c80533;
+}
+.rh-legend-header {
+    background: #18191d;
+    border-radius: 1.2em;
+    margin-top: 0.8em;
+    margin-bottom: 1.2em;
+    padding: 0.6em 0 0.4em 0;
+    color: #fff;
+    box-shadow: 0 2px 10px #0002;
+    text-align: center;
+    font-size: 2.04em;
+    letter-spacing: 0.01em;
+    font-weight: 800;
+}
+.rh-legend-header .legend-green {
+    color: #00c805 !important;
+    font-size: 0.85em;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    margin-left: 0.3em;
+}
+.rh-quick-legend {
+    font-size: 1.11em;
+    color: #fff;
+    text-align: left;
+    margin-bottom: 0.6em;
+}
+.indicator-card, .stat-card, .ai-suggestion {
+    border-radius: 1em;
+    box-shadow: 0 2px 8px #0003;
+    margin-bottom: 1em;
+    border: 1.5px solid #20344e;
+    background: #18191d !important;
+    color: #fff !important;
+}
+.stat-card {
+    padding: 1.1em 1em 0.8em 1em;
+    text-align: center;
+    margin-bottom: 0.9em;
+    font-size:1.01em;
+}
+.stat-label { color: #fff; font-weight: 600; font-size:1.06em;}
+.stat-value { color: #fff; font-size:1.28em; font-weight: 700;}
+.ai-suggestion {
+    background: #18191d !important;
+    border: 1.5px solid #00c805;
+    font-size: 1.15em;
+    font-weight: 500;
+    padding: 1.2em 1.5em;
+    margin: 0.7em 0 1.3em 0;
+    color: #fff !important;
+}
+.section-header {
+    font-size: 1.44em !important;
+    margin-top: 1em !important;
+    margin-bottom: 0.56em !important;
+    font-weight: 700 !important;
+    color: #fff !important;
+    letter-spacing: 0.01em;
+}
+.stat-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.5em 0 1.1em 0;
+    font-size: 1.11em;
+    color: #fff !important;
+}
+.stat-table th, .stat-table td {
+    border: none;
+    text-align: left;
+    padding: 0.27em 1em 0.27em 0;
+    vertical-align: middle;
+    color: #fff !important;
+}
+.stat-table th {
+    color: #fff !important;
+    font-weight: 700;
+    background: #162033;
+}
+.stat-table td {
+    color: #fff !important;
+}
+.project-text {
+    color: #fff !important;
+    font-size: 1.13em !important;
+}
+.copyright-text {
+    text-align:center;
+    color:#888;
+    font-size:1.12em;
+    margin-top:2.5em;
+    margin-bottom:1em;
+}
+.stDataFrame {font-size:1.03em; color: #fff;}
+@media (max-width: 900px) {
+    .block-container, .main {padding-left: 0.5em !important; padding-right: 0.5em !important;}
+    .rh-legend-header {font-size: 1.1em;}
+    .indicator-card, .stat-card, .ai-suggestion {padding: 0.7em 0.6em;}
+    .stat-card {font-size:0.97em;}
+    .section-header {font-size: 1.1em !important;}
+}
+</style>
 """, unsafe_allow_html=True)
 
 # --- Legend Header ---
@@ -227,21 +217,21 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# --- Quick Legend ---
+# --- Responsive Quick Legend ---
 with st.expander("📖 Quick Chart/Factor Legend"):
     st.markdown("""
     <div class="rh-quick-legend">
-    <b>Candlestick:</b> Shows open, high, low, and close prices for each time period.<br>
-    <b>Moving Averages (MAs):</b> Indicates short and long-term price trends.<br>
-    <b>% Change:</b> Daily percentage price change, reveals momentum.<br>
-    <b>Volatility:</b> Measures price fluctuation (risk).<br>
-    <b>Volume:</b> Number of shares traded, confirms trend moves.<br>
-    <b>RSI:</b> Overbought/oversold momentum signal.<br>
-    <b>MACD:</b> Trend-following momentum indicator.<br>
-    <b>OBV:</b> Volume flow used to anticipate price moves.<br>
-    <b>Sharpe Ratio:</b> Risk-adjusted return measurement.<br>
-    <b>Drawdown:</b> Largest peak-to-trough loss.<br>
-    <b>AI Suggestion:</b> Smart rule-based buy/hold/sell idea.
+    <b>Candlestick:</b> Shows open, high, low, and close for each period.<br>
+    <b>Moving Averages (MAs):</b> Highlights short/long-term trend direction.<br>
+    <b>% Change:</b> Daily percent move, reveals momentum.<br>
+    <b>Volatility:</b> Captures how much price fluctuates (risk).<br>
+    <b>Volume:</b> Shares traded, confirms price action.<br>
+    <b>RSI:</b> Shows if overbought or oversold.<br>
+    <b>MACD:</b> Trend/momentum crossover signal.<br>
+    <b>OBV:</b> Tracks volume flow behind price.<br>
+    <b>Sharpe Ratio:</b> Risk-adjusted return.<br>
+    <b>Drawdown:</b> Largest recent drop from a peak.<br>
+    <b>AI Suggestion:</b> Auto-generated buy/hold/sell idea.
     </div>
     """, unsafe_allow_html=True)
 
@@ -285,7 +275,7 @@ if st.button("Get Data & Analyze", key="getdata"):
     st.session_state["interval"] = interval
 
 st.markdown("<span class='section-header'>② Options</span>", unsafe_allow_html=True)
-colc1, colc2 = st.columns([1,1])
+colc1, colc2 = st.columns(2)
 with colc1:
     simulate = st.checkbox("Simulate future growth/projection?", value=False)
     years = 5
@@ -385,9 +375,9 @@ if st.session_state["data_loaded"]:
             df['Sharpe'] = sharpe_ratio(df[close_col].pct_change().dropna())
             df['Drawdown'] = drawdown(df[close_col])
 
-            # 5-wide grid for charts
-            c1, c2, c3, c4, c5 = st.columns([1.8,1.2,1.2,1.2,2])
-            with c1:
+            # Responsive chart columns (auto-stack on mobile!)
+            chart_cols = st.columns([1.8,1.2,1.2,1.2,2])
+            with chart_cols[0]:
                 st.markdown("<div class='stat-card'><div class='stat-label'>Price (Candlestick)</div>", unsafe_allow_html=True)
                 fig = go.Figure()
                 fig.add_trace(go.Candlestick(
@@ -401,19 +391,19 @@ if st.session_state["data_loaded"]:
                 st.markdown("</div>", unsafe_allow_html=True)
                 st.markdown("<div class='stat-card'><div class='stat-label'>Drawdown</div>", unsafe_allow_html=True)
                 st.line_chart(df['Drawdown'], use_container_width=True)
-            with c2:
+            with chart_cols[1]:
                 st.markdown("<div class='stat-card'><div class='stat-label'>Volume</div>", unsafe_allow_html=True)
                 st.bar_chart(df[vol_col], use_container_width=True)
                 st.markdown("<div class='stat-card'><div class='stat-label'>RSI (14d)</div>", unsafe_allow_html=True)
                 st.line_chart(df['RSI'], use_container_width=True)
-            with c3:
+            with chart_cols[2]:
                 st.markdown("<div class='stat-card'><div class='stat-label'>Daily % Change</div>", unsafe_allow_html=True)
                 st.line_chart(df['Daily % Change'], use_container_width=True)
                 st.markdown("<div class='stat-card'><div class='stat-label'>Volatility (20d)</div>", unsafe_allow_html=True)
                 st.line_chart(df['Volatility (20d)'], use_container_width=True)
                 st.markdown("<div class='stat-card'><div class='stat-label'>Sharpe Ratio</div>", unsafe_allow_html=True)
                 st.line_chart(pd.Series([df['Sharpe'].iloc[0]]*len(df), index=df.index), use_container_width=True)
-            with c4:
+            with chart_cols[3]:
                 st.markdown("<div class='stat-card'><div class='stat-label'>MACD</div>", unsafe_allow_html=True)
                 mfig = go.Figure()
                 mfig.add_trace(go.Scatter(x=df.index, y=df['MACD'], name="MACD", line=dict(color="#00c805")))
@@ -423,11 +413,12 @@ if st.session_state["data_loaded"]:
                 st.plotly_chart(mfig, use_container_width=True)
                 st.markdown("<div class='stat-card'><div class='stat-label'>OBV (On-Balance Volume)</div>", unsafe_allow_html=True)
                 st.line_chart(df['OBV'], use_container_width=True)
-            with c5:
+            with chart_cols[4]:
                 st.markdown("<div class='stat-card'><div class='stat-label'>Moving Avg. Table</div>", unsafe_allow_html=True)
                 st.dataframe(df[[close_col, 'MA20','MA50','MA100','MA200','EMA20','EMA50','EMA100','EMA200']].tail(15), use_container_width=True, height=295)
 
-            left, right = st.columns([1.5, 1.5], gap="large")
+            # Responsive stats and AI panels (auto-stack on mobile)
+            left, right = st.columns(2)
             with left:
                 st.markdown("<div class='indicator-card'><b>📋 Key Stats for this Period</b>", unsafe_allow_html=True)
                 last_row = df.dropna(subset=[close_col]).iloc[-1]
