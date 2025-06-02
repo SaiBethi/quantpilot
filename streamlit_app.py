@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 import numpy as np
 from datetime import datetime
 
-# --- UI and styling (unchanged except border tweak) ---
+# --- UI and styling (updated border, label style) ---
 st.set_page_config(page_title="QuantPilot: Robinhood LEGEND", layout="wide")
 st.markdown("""
 <style>
@@ -200,12 +200,22 @@ html, body, [class*="css"], .stApp {
     margin-bottom:1em;
 }
 .stDataFrame {font-size:1.03em; color: #fff;}
+.price-note {
+    color: #ffe48a !important;
+    font-size: 1.08em;
+    margin: 0.2em 0 0.7em 0.7em;
+    padding: 0.27em 0.7em;
+    border-radius: 0.5em;
+    background: #25304a;
+    display: inline-block;
+}
 @media (max-width: 900px) {
     .block-container, .main {padding-left: 0.5em !important; padding-right: 0.5em !important;}
     .rh-legend-header {font-size: 1.1em;}
     .indicator-card, .stat-card, .ai-suggestion {padding: 0.7em 0.6em;}
     .stat-card {font-size:0.97em;}
     .section-header {font-size: 1.1em !important;}
+    .price-note {font-size:0.97em;}
 }
 </style>
 """, unsafe_allow_html=True)
@@ -383,6 +393,12 @@ if st.session_state["data_loaded"]:
             with top_col2:
                 # Spacer to pull price chart down a little
                 st.markdown("<div style='height:74px'/></div>", unsafe_allow_html=True)
+                st.markdown("<div class='stat-card'><div class='stat-label'>Price Chart</div></div>", unsafe_allow_html=True)
+                # Note for fullscreen
+                st.markdown(
+                    "<div class='price-note'>TIP: Click the expand arrows in the corner of the chart to fullscreen and view all data.</div>",
+                    unsafe_allow_html=True
+                )
                 main_candle = go.Figure()
                 main_candle.add_trace(go.Candlestick(
                     x=df.index, open=df[open_col], high=df[high_col],
