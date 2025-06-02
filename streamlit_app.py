@@ -31,18 +31,21 @@ st.markdown("""
         color: #fff !important;
         letter-spacing: 0.01em;
     }
-    /* Make text in input boxes black, but labels white */
+    /* Input field text is white on black, labels are white */
     .stTextInput > div > input,
     .stNumberInput > div > input,
     .stDateInput > div > input,
     .stSelectbox div[data-baseweb="select"] input {
-        color: #111 !important;
-        background: #fff !important;
+        color: #fff !important;
+        background: #111 !important;
         font-family: 'EB Garamond', serif !important;
         font-size: 1.09em !important;
+        border-radius: 0.6em !important;
+        border: 1.7px solid #333 !important;
+        box-shadow: 0 2px 8px #0006 !important;
     }
     .stTextInput > div > input::placeholder {
-        color: #333 !important;
+        color: #aaa !important;
         opacity: 1 !important;
     }
     .stButton>button, .stDownloadButton>button {
