@@ -5,10 +5,8 @@ import plotly.graph_objects as go
 import numpy as np
 from datetime import datetime
 
-# ✅ Step 1: Enable wide layout for responsive design
+# --- UI and styling (unchanged) ---
 st.set_page_config(page_title="QuantPilot: Robinhood LEGEND", layout="wide")
-
-# --- Responsive CSS for dark theme, cards, and inputs ---
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
@@ -375,49 +373,47 @@ if st.session_state["data_loaded"]:
             df['Sharpe'] = sharpe_ratio(df[close_col].pct_change().dropna())
             df['Drawdown'] = drawdown(df[close_col])
 
-            # Responsive chart columns (auto-stack on mobile!)
-            chart_cols = st.columns([1.8,1.2,1.2,1.2,2])
-            with chart_cols[0]:
-                st.markdown("<div class='stat-card'><div class='stat-label'>Price (Candlestick)</div>", unsafe_allow_html=True)
-                fig = go.Figure()
-                fig.add_trace(go.Candlestick(
-                    x=df.index, open=df[open_col], high=df[high_col], low=df[low_col], close=df[close_col],
-                    name='Candlestick'
+            # --- MAIN CHART (centered, adapts well to any device) ---
+            st.markdown("<div style='display:flex; flex-direction:column; align-items:center; width:100%;'>", unsafe_allow_html=True)
+            main_candle = go.Figure()
+            main_candle.add_trace(go.Candlestick(
+                x=df.index, open=df[open_col], high=df[high_col],
+                low=df[low_col], close=df[close_col],
+                name='Candlestick',
+                increasing_line_color="#00c805", decreasing_line_color="#ff4c4c"
+            ))
+            # Overlay Moving Averages
+            for m, colr in [("MA20", "cyan"), ("MA50", "#00c805"), ("MA100", "#aaa"), ("MA200", "#fff")]:
+                main_candle.add_trace(go.Scatter(
+                    x=df.index, y=df[m], name=m, line=dict(color=colr, width=1.5, dash="dot")
                 ))
-                for m, col in [("MA20", "cyan"), ("MA50", "#00c805"), ("MA100", "#aaa"), ("MA200", "#fff")]:
-                    fig.add_trace(go.Scatter(x=df.index, y=df[m], name=m, line=dict(color=col, width=1, dash="dot")))
-                fig.update_layout(margin=dict(l=0,r=0,t=10,b=10),height=190,template="plotly_dark",showlegend=False)
-                st.plotly_chart(fig, use_container_width=True)
-                st.markdown("</div>", unsafe_allow_html=True)
-                st.markdown("<div class='stat-card'><div class='stat-label'>Drawdown</div>", unsafe_allow_html=True)
-                st.line_chart(df['Drawdown'], use_container_width=True)
-            with chart_cols[1]:
-                st.markdown("<div class='stat-card'><div class='stat-label'>Volume</div>", unsafe_allow_html=True)
-                st.bar_chart(df[vol_col], use_container_width=True)
-                st.markdown("<div class='stat-card'><div class='stat-label'>RSI (14d)</div>", unsafe_allow_html=True)
-                st.line_chart(df['RSI'], use_container_width=True)
-            with chart_cols[2]:
-                st.markdown("<div class='stat-card'><div class='stat-label'>Daily % Change</div>", unsafe_allow_html=True)
-                st.line_chart(df['Daily % Change'], use_container_width=True)
-                st.markdown("<div class='stat-card'><div class='stat-label'>Volatility (20d)</div>", unsafe_allow_html=True)
-                st.line_chart(df['Volatility (20d)'], use_container_width=True)
-                st.markdown("<div class='stat-card'><div class='stat-label'>Sharpe Ratio</div>", unsafe_allow_html=True)
-                st.line_chart(pd.Series([df['Sharpe'].iloc[0]]*len(df), index=df.index), use_container_width=True)
-            with chart_cols[3]:
-                st.markdown("<div class='stat-card'><div class='stat-label'>MACD</div>", unsafe_allow_html=True)
-                mfig = go.Figure()
-                mfig.add_trace(go.Scatter(x=df.index, y=df['MACD'], name="MACD", line=dict(color="#00c805")))
-                mfig.add_trace(go.Scatter(x=df.index, y=df['MACD_Signal'], name="Signal", line=dict(color="#e0e0e0")))
-                mfig.add_trace(go.Bar(x=df.index, y=df['MACD_Hist'], name="Histogram", marker_color="#aaf"))
-                mfig.update_layout(template="plotly_dark",margin=dict(l=0,r=0,t=8,b=8),height=120,showlegend=False)
-                st.plotly_chart(mfig, use_container_width=True)
-                st.markdown("<div class='stat-card'><div class='stat-label'>OBV (On-Balance Volume)</div>", unsafe_allow_html=True)
-                st.line_chart(df['OBV'], use_container_width=True)
-            with chart_cols[4]:
-                st.markdown("<div class='stat-card'><div class='stat-label'>Moving Avg. Table</div>", unsafe_allow_html=True)
-                st.dataframe(df[[close_col, 'MA20','MA50','MA100','MA200','EMA20','EMA50','EMA100','EMA200']].tail(15), use_container_width=True, height=295)
+            main_candle.update_layout(
+                template="plotly_dark",
+                height=480,
+                margin=dict(l=10, r=10, t=18, b=10),
+                xaxis=dict(title=None, rangeslider=dict(visible=False)),
+                yaxis=dict(title=None),
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5, font=dict(family="EB Garamond, serif", size=13)),
+            )
+            st.plotly_chart(main_candle, use_container_width=True)
 
-            # Responsive stats and AI panels (auto-stack on mobile)
+            # --- Volume bar just below (full width, adapts) ---
+            vol_fig = go.Figure()
+            vol_fig.add_trace(go.Bar(
+                x=df.index, y=df[vol_col], marker_color="#444", name="Volume"
+            ))
+            vol_fig.update_layout(
+                margin=dict(l=10, r=10, t=8, b=10),
+                template="plotly_dark",
+                height=100,
+                showlegend=False,
+                xaxis=dict(visible=False),  # hide x axis for volume
+                yaxis=dict(title="Volume", tickfont=dict(size=12, family="EB Garamond, serif"))
+            )
+            st.plotly_chart(vol_fig, use_container_width=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+
+            # --- Rest of your UI (unchanged) ---
             left, right = st.columns(2)
             with left:
                 st.markdown("<div class='indicator-card'><b>📋 Key Stats for this Period</b>", unsafe_allow_html=True)
