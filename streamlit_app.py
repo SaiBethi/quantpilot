@@ -209,6 +209,15 @@ html, body, [class*="css"], .stApp {
     background: #25304a;
     display: inline-block;
 }
+.price-label {
+    font-weight: 600;
+    font-size: 1.13em;
+    color: #fff !important;
+    letter-spacing: 0.01em;
+    margin-bottom: 0.3em;
+    margin-left: 0.25em;
+    margin-top: 0.15em;
+}
 @media (max-width: 900px) {
     .block-container, .main {padding-left: 0.5em !important; padding-right: 0.5em !important;}
     .rh-legend-header {font-size: 1.1em;}
@@ -216,13 +225,12 @@ html, body, [class*="css"], .stApp {
     .stat-card {font-size:0.97em;}
     .section-header {font-size: 1.1em !important;}
     .price-note {font-size:0.97em;}
+    .price-label {font-size:1.04em;}
 }
 </style>
 """, unsafe_allow_html=True)
 
-# --- LOGO AND HEADER ---
-# Place this at the very top, before your custom header
-st.image("logo.png.jpg", width=160)
+# --- Legend Header ---
 st.markdown("""
 <div class="rh-legend-header">
     <b style="color:#00c805;">QuantPilot</b>
@@ -278,6 +286,7 @@ with colc1:
     if simulate:
         years = st.slider("Years to Simulate", 1, 100, 5, 1)
 with colc2:
+    # --- The note for full screen chart feature ---
     st.markdown(
         "<div class='price-note'>TIP: Click the expand arrows in the corner of the price chart to fullscreen and view all data.</div>",
         unsafe_allow_html=True
@@ -397,11 +406,9 @@ if st.session_state["data_loaded"]:
                 st.markdown("<div class='stat-card'><div class='stat-label'>Volatility (20d)</div>", unsafe_allow_html=True)
                 st.line_chart(df['Volatility (20d)'], use_container_width=True, height=480)
             with top_col2:
-                st.markdown(
-                    "<div class='stat-card' style='padding-bottom:0.2em;'>"
-                    "<div class='stat-label'>Price Chart</div>"
-                    "</div>", unsafe_allow_html=True)
-                st.markdown("<div style='height:18px'/></div>", unsafe_allow_html=True)
+                # Spacer to pull price chart down a little
+                st.markdown("<div style='height:74px'/></div>", unsafe_allow_html=True)
+                st.markdown("<div class='price-label'>Price Chart</div>", unsafe_allow_html=True)
                 main_candle = go.Figure()
                 main_candle.add_trace(go.Candlestick(
                     x=df.index, open=df[open_col], high=df[high_col],
@@ -415,7 +422,7 @@ if st.session_state["data_loaded"]:
                     ))
                 main_candle.update_layout(
                     template="plotly_dark",
-                    height=440,
+                    height=480,
                     margin=dict(l=10, r=10, t=18, b=10),
                     xaxis=dict(title=None, rangeslider=dict(visible=False)),
                     yaxis=dict(title=None),
