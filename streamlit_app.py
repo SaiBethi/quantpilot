@@ -6,25 +6,29 @@ import numpy as np
 
 st.set_page_config(page_title="QuantPilot: Robinhood LEGEND", layout="wide")
 
-# --- Enhanced Robinhood/Legend/EB Garamond CSS ---
+# --- Enhanced Robinhood/Legend/EB Garamond CSS for white text, soft shadow, modern look, centered, responsive ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
     html, body, [class*="css"], .stApp {
         font-family: 'EB Garamond', serif !important;
         background: #0c1b2a !important;
-        color: #e0e0e0 !important;
+        color: #fff !important;
     }
     .block-container {
         background: #0c1b2a !important;
-        color: #e0e0e0 !important;
+        color: #fff !important;
         font-family: 'EB Garamond', serif !important;
-        padding-top: 0.5rem !important;
-        padding-left: 0 !important;
-        padding-right: 0 !important;
+        padding-top: 2.5rem !important;
+        padding-left: 5vw !important;
+        padding-right: 5vw !important;
+        max-width: 1200px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
     }
     *, .stText, .stMarkdown, .stButton>button, .stDownloadButton>button, .stSelectbox>div, .stNumberInput>div>input, .stTextInput>div>input, .stDateInput>div>input, .stDataFrame, .stCheckbox>label, .stExpanderHeader {
         font-family: 'EB Garamond', serif !important;
+        color: #fff !important;
         letter-spacing: 0.01em;
     }
     .stButton>button, .stDownloadButton>button {
@@ -36,11 +40,12 @@ st.markdown("""
         border: 1.5px solid #20344e;
         margin-bottom: 0.5em;
         transition: background 0.14s, color 0.14s, box-shadow 0.18s;
+        box-shadow: 0 3px 10px #0004;
     }
     .stButton>button:hover, .stDownloadButton>button:hover {
-        background: #00c805 !important;
-        color: #0c1b2a !important;
-        box-shadow: 0 3px 12px #00c80522;
+        background: #18191d !important;
+        color: #fff !important;
+        box-shadow: 0 3px 18px #00c80533;
     }
     .rh-legend-header {
         background: #18191d;
@@ -58,7 +63,7 @@ st.markdown("""
     }
     .rh-quick-legend {
         font-size: 1.11em;
-        color: #ffd700;
+        color: #fff;
         text-align: center;
         margin-bottom: 0.6em;
         font-family: 'EB Garamond', serif !important;
@@ -69,24 +74,19 @@ st.markdown("""
         margin-bottom: 1em;
         border: 1.5px solid #20344e;
         font-family: 'EB Garamond', serif !important;
-    }
-    .indicator-card {
         background: #18191d !important;
-        padding: 0.9em 1.4em;
-        font-size: 1.12em;
-        color: #e0e0e0 !important;
+        color: #fff !important;
     }
     .stat-card {
-        background: #12243a !important;
         padding: 1.1em 1em 0.8em 1em;
         text-align: center;
         margin-bottom: 0.9em;
         font-size:1.01em;
     }
-    .stat-label { color: #7db5a8; font-weight: 600; font-size:1em;}
-    .stat-value { color: #e0e0e0; font-size:1.28em; font-weight: 700;}
+    .stat-label { color: #fff; font-weight: 600; font-size:1.06em;}
+    .stat-value { color: #fff; font-size:1.28em; font-weight: 700;}
     .ai-suggestion {
-        background: #1a1a1a !important;
+        background: #18191d !important;
         border: 1.5px solid #00c805;
         font-size: 1.15em;
         font-weight: 500;
@@ -120,9 +120,9 @@ st.markdown("""
         font-family: 'EB Garamond', serif !important;
     }
     .stat-table th {
-        color: #ffdc8f !important;
+        color: #fff !important;
         font-weight: 700;
-        background: none;
+        background: #162033;
     }
     .stat-table td {
         color: #fff !important;
@@ -140,7 +140,7 @@ st.markdown("""
         margin-bottom:1em;
         font-family:'EB Garamond',serif !important;
     }
-    .stDataFrame {font-size:1.03em; font-family:'EB Garamond',serif !important;}
+    .stDataFrame {font-size:1.03em; font-family:'EB Garamond',serif !important; color: #fff;}
     @media (max-width: 900px) {
         .block-container, .main {padding-left: 1.1em !important;}
         .rh-legend-header {font-size: 1.18em;}
@@ -153,7 +153,7 @@ st.markdown("""
 st.markdown("""
 <div class="rh-legend-header">
     <b>QuantPilot</b>
-    <span style="color:#00c805;font-size:0.85em;font-weight:700;"> LEGEND</span>
+    <span style="color:#fff;font-size:0.85em;font-weight:700;"> LEGEND</span>
 </div>
 """, unsafe_allow_html=True)
 
@@ -161,21 +161,8 @@ st.markdown("""
 with st.expander("📖 Quick Chart/Factor Legend"):
     st.markdown("""
     <div class="rh-quick-legend">
-        📈 Candle: Price moves • 📊 MAs: Trend lines • ⚡ % Chg: Daily momentum • 🌪 Volatility: Risk • 🔊 Volume: Trading activity • 🤖 AI: Smart suggestion.
+        📈 Candle: Price moves • 📊 MAs: Trend lines • ⚡ % Chg: Daily momentum • 🌪 Volatility: Risk • 🔊 Volume • 🤖 AI: Smart suggestion • RSI • MACD • OBV • Sharpe • Drawdown
     </div>
-    <ul style="font-size:1.07em;margin-top:1em;color:#fff;">
-        <li><b>📈 Candle:</b> Daily price action.</li>
-        <li><b>📊 MAs:</b> 20/50/100/200-day moving averages for trend.</li>
-        <li><b>⚡ % Chg:</b> Daily momentum.</li>
-        <li><b>🌪 Volatility:</b> 20-day risk swings.</li>
-        <li><b>🔊 Volume:</b> Trading activity.</li>
-        <li><b>🤖 AI:</b> Signal and allocation suggestion.</li>
-        <li><b>RSI:</b> Relative Strength Index.</li>
-        <li><b>MACD:</b> Trend change detection.</li>
-        <li><b>OBV:</b> On-Balance Volume.</li>
-        <li><b>Sharpe:</b> Risk-adjusted performance.</li>
-        <li><b>Drawdown:</b> Loss from peak.</li>
-    </ul>
     """, unsafe_allow_html=True)
 
 if "data_loaded" not in st.session_state:
@@ -316,7 +303,7 @@ if st.session_state["data_loaded"]:
                     x=df.index, open=df[open_col], high=df[high_col], low=df[low_col], close=df[close_col],
                     name='Candlestick'
                 ))
-                for m,col in [("MA20",'cyan'),("MA50",'#00c805'),("MA100",'#aaa'),("MA200",'#fff')]:
+                for m,col in [("MA20",'cyan'),("MA50','#00c805'),("MA100",'#aaa'),("MA200",'#fff')]:
                     fig.add_trace(go.Scatter(x=df.index, y=df[m], name=m, line=dict(color=col, width=1, dash="dot")))
                 fig.update_layout(margin=dict(l=0,r=0,t=10,b=10),height=190,template="plotly_dark",showlegend=False)
                 st.plotly_chart(fig, use_container_width=True)
@@ -508,7 +495,7 @@ if st.session_state["data_loaded"]:
                     )
 
                 st.markdown(
-                    "<div style='font-size:1.02em; color:#ffd700;'>(These suggestions are rule-based and for educational purposes. Always research thoroughly before investing!)</div>",
+                    "<div style='font-size:1.02em; color:#fff;'>(These suggestions are rule-based and for educational purposes. Always research thoroughly before investing!)</div>",
                     unsafe_allow_html=True
                 )
 
