@@ -6,41 +6,31 @@ import numpy as np
 
 st.set_page_config(page_title="QuantPilot: Robinhood LEGEND", layout="wide")
 
-# --- Robinhood/Legend-Style Enhanced CSS ---
+# --- Enhanced Robinhood/Legend/EB Garamond CSS ---
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;600;700&family=Inter:wght@400;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
     html, body, [class*="css"], .stApp {
+        font-family: 'EB Garamond', serif !important;
         background: #0c1b2a !important;
         color: #e0e0e0 !important;
-        font-family: 'EB Garamond', 'Inter', serif !important;
     }
     .block-container {
         background: #0c1b2a !important;
         color: #e0e0e0 !important;
-    }
-    label, .stTextInput label, .stNumberInput label, .stDateInput label, .stSelectbox label, .st-expanderHeader, .stCheckbox>label {
-        color: #e0e0e0 !important;
         font-family: 'EB Garamond', serif !important;
-        font-size: 1.07em !important;
+        padding-top: 0.5rem !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
     }
-    .stTextInput>div>input, .stNumberInput>div>input, .stDateInput>div>input, .stSelectbox>div, .stTextArea textarea {
-        background: #162033 !important;
-        color: #fff !important;
-        border: 1.5px solid #20344e !important;
+    *, .stText, .stMarkdown, .stButton>button, .stDownloadButton>button, .stSelectbox>div, .stNumberInput>div>input, .stTextInput>div>input, .stDateInput>div>input, .stDataFrame, .stCheckbox>label, .stExpanderHeader {
         font-family: 'EB Garamond', serif !important;
-        font-size: 1.09em !important;
-    }
-    .stTextInput>div>input::placeholder {
-        color: #7db5a8 !important;
-        opacity: 1 !important;
-        font-family: 'EB Garamond', serif !important;
+        letter-spacing: 0.01em;
     }
     .stButton>button, .stDownloadButton>button {
-        font-family: 'EB Garamond', serif !important;
         font-weight: 600;
-        font-size: 1.08em !important;
-        border-radius: 11px;
+        font-size: 1.09em !important;
+        border-radius: 13px;
         background: #12243a !important;
         color: #fff !important;
         border: 1.5px solid #20344e;
@@ -53,7 +43,6 @@ st.markdown("""
         box-shadow: 0 3px 12px #00c80522;
     }
     .rh-legend-header {
-        font-family: 'EB Garamond', serif !important;
         background: #18191d;
         border-radius: 1.2em;
         margin-top: 0.8em;
@@ -62,28 +51,29 @@ st.markdown("""
         color: #fff;
         box-shadow: 0 2px 10px #0002;
         text-align: center;
-        font-size: 2.15em;
+        font-size: 2.04em;
         letter-spacing: 0.01em;
         font-weight: 800;
+        font-family: 'EB Garamond', serif !important;
     }
     .rh-quick-legend {
-        font-family: 'EB Garamond', serif !important;
         font-size: 1.11em;
         color: #ffd700;
         text-align: center;
         margin-bottom: 0.6em;
+        font-family: 'EB Garamond', serif !important;
     }
     .indicator-card, .stat-card, .ai-suggestion {
-        font-family: 'EB Garamond', serif !important;
         border-radius: 1em;
         box-shadow: 0 2px 8px #0003;
-        margin-bottom: 1.1em;
+        margin-bottom: 1em;
         border: 1.5px solid #20344e;
+        font-family: 'EB Garamond', serif !important;
     }
     .indicator-card {
         background: #18191d !important;
-        padding: 1em 1.4em;
-        font-size: 1.14em;
+        padding: 0.9em 1.4em;
+        font-size: 1.12em;
         color: #e0e0e0 !important;
     }
     .stat-card {
@@ -91,32 +81,33 @@ st.markdown("""
         padding: 1.1em 1em 0.8em 1em;
         text-align: center;
         margin-bottom: 0.9em;
+        font-size:1.01em;
     }
     .stat-label { color: #7db5a8; font-weight: 600; font-size:1em;}
-    .stat-value { color: #e0e0e0; font-size:1.32em; font-weight: 700;}
+    .stat-value { color: #e0e0e0; font-size:1.28em; font-weight: 700;}
     .ai-suggestion {
         background: #1a1a1a !important;
         border: 1.5px solid #00c805;
-        font-size: 1.16em;
+        font-size: 1.15em;
         font-weight: 500;
         padding: 1.2em 1.5em;
         margin: 0.7em 0 1.3em 0;
         color: #fff !important;
     }
     .section-header {
-        font-size: 1.55em !important;
+        font-size: 1.44em !important;
         margin-top: 1em !important;
-        margin-bottom: 0.6em !important;
-        font-family: 'EB Garamond', serif !important;
+        margin-bottom: 0.56em !important;
         font-weight: 700 !important;
         color: #fff !important;
         letter-spacing: 0.01em;
+        font-family: 'EB Garamond', serif !important;
     }
     .stat-table {
         width: 100%;
         border-collapse: collapse;
         margin: 0.5em 0 1.1em 0;
-        font-size: 1.13em;
+        font-size: 1.11em;
         color: #fff !important;
         font-family: 'EB Garamond', serif !important;
     }
@@ -149,6 +140,7 @@ st.markdown("""
         margin-bottom:1em;
         font-family:'EB Garamond',serif !important;
     }
+    .stDataFrame {font-size:1.03em; font-family:'EB Garamond',serif !important;}
     @media (max-width: 900px) {
         .block-container, .main {padding-left: 1.1em !important;}
         .rh-legend-header {font-size: 1.18em;}
@@ -157,7 +149,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- Robinhood LEGEND Header ---
+# --- Legend Header ---
 st.markdown("""
 <div class="rh-legend-header">
     <b>QuantPilot</b>
@@ -165,20 +157,20 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# --- Quick Legend (EB Garamond, one sentence, professional) ---
+# --- Quick Legend ---
 with st.expander("📖 Quick Chart/Factor Legend"):
     st.markdown("""
     <div class="rh-quick-legend">
-        📈 Candle: Price moves &nbsp;•&nbsp; 📊 MAs: Trend lines &nbsp;•&nbsp; ⚡ % Chg: Daily momentum &nbsp;•&nbsp; 🌪 Volatility: Risk &nbsp;•&nbsp; 🔊 Volume: Trading activity &nbsp;•&nbsp; 🤖 AI: Smart suggestion.
+        📈 Candle: Price moves • 📊 MAs: Trend lines • ⚡ % Chg: Daily momentum • 🌪 Volatility: Risk • 🔊 Volume: Trading activity • 🤖 AI: Smart suggestion.
     </div>
-    <ul class="el-garamond" style="font-size:1.07em;margin-top:1em;color:#fff;">
-        <li><b>📈 Candle:</b> Shows daily price action.</li>
+    <ul style="font-size:1.07em;margin-top:1em;color:#fff;">
+        <li><b>📈 Candle:</b> Daily price action.</li>
         <li><b>📊 MAs:</b> 20/50/100/200-day moving averages for trend.</li>
-        <li><b>⚡ % Chg:</b> Daily price momentum.</li>
-        <li><b>🌪 Volatility:</b> 20-day standard deviation (risk/swing).</li>
+        <li><b>⚡ % Chg:</b> Daily momentum.</li>
+        <li><b>🌪 Volatility:</b> 20-day risk swings.</li>
         <li><b>🔊 Volume:</b> Trading activity.</li>
         <li><b>🤖 AI:</b> Signal and allocation suggestion.</li>
-        <li><b>RSI:</b> Relative Strength Index (overbought/oversold).</li>
+        <li><b>RSI:</b> Relative Strength Index.</li>
         <li><b>MACD:</b> Trend change detection.</li>
         <li><b>OBV:</b> On-Balance Volume.</li>
         <li><b>Sharpe:</b> Risk-adjusted performance.</li>
@@ -186,7 +178,6 @@ with st.expander("📖 Quick Chart/Factor Legend"):
     </ul>
     """, unsafe_allow_html=True)
 
-# --- Data input expander ---
 if "data_loaded" not in st.session_state:
     st.session_state["data_loaded"] = False
 
@@ -215,7 +206,6 @@ if st.button("Get Data & Analyze", key="getdata"):
     st.session_state["end"] = end
     st.session_state["interval"] = interval
 
-# --- Simulation and capital/shares entry ---
 st.markdown("<span class='section-header'>② Options</span>", unsafe_allow_html=True)
 colc1, colc2 = st.columns([1,1])
 with colc1:
@@ -236,12 +226,6 @@ def safe_number(val):
         return float(val)
     except Exception:
         return "-"
-
-def safe_fmt(val, prefix="$"):
-    v = safe_number(val)
-    if v == "-":
-        return "-"
-    return f"{prefix}{v:,.2f}"
 
 def rsi(series, period=14):
     delta = series.diff()
@@ -323,8 +307,8 @@ if st.session_state["data_loaded"]:
             df['Sharpe'] = sharpe_ratio(df[close_col].pct_change().dropna())
             df['Drawdown'] = drawdown(df[close_col])
 
-            # --- 5-wide grid for a data-rich Robinhood feel ---
-            c1, c2, c3, c4, c5 = st.columns(5)
+            # 5-wide grid for charts
+            c1, c2, c3, c4, c5 = st.columns([1.8,1.2,1.2,1.2,2])
             with c1:
                 st.markdown("<div class='stat-card'><div class='stat-label'>Price (Candlestick)</div>", unsafe_allow_html=True)
                 fig = go.Figure()
@@ -334,7 +318,7 @@ if st.session_state["data_loaded"]:
                 ))
                 for m,col in [("MA20",'cyan'),("MA50",'#00c805'),("MA100",'#aaa'),("MA200",'#fff')]:
                     fig.add_trace(go.Scatter(x=df.index, y=df[m], name=m, line=dict(color=col, width=1, dash="dot")))
-                fig.update_layout(margin=dict(l=0,r=0,t=10,b=10),height=180,template="plotly_dark",showlegend=False)
+                fig.update_layout(margin=dict(l=0,r=0,t=10,b=10),height=190,template="plotly_dark",showlegend=False)
                 st.plotly_chart(fig, use_container_width=True)
                 st.markdown("</div>", unsafe_allow_html=True)
                 st.markdown("<div class='stat-card'><div class='stat-label'>Drawdown</div>", unsafe_allow_html=True)
@@ -363,7 +347,7 @@ if st.session_state["data_loaded"]:
                 st.line_chart(df['OBV'], use_container_width=True)
             with c5:
                 st.markdown("<div class='stat-card'><div class='stat-label'>Moving Avg. Table</div>", unsafe_allow_html=True)
-                st.dataframe(df[[close_col, 'MA20','MA50','MA100','MA200','EMA20','EMA50','EMA100','EMA200']].tail(15), use_container_width=True, height=300)
+                st.dataframe(df[[close_col, 'MA20','MA50','MA100','MA200','EMA20','EMA50','EMA100','EMA200']].tail(15), use_container_width=True, height=295)
 
             left, right = st.columns([1.5, 1.5], gap="large")
             with left:
@@ -442,7 +426,7 @@ if st.session_state["data_loaded"]:
 
                 verdict_color = {"BUY": "#00c805", "SELL": "#ff4c4c", "HOLD": "#ffe48a"}
                 st.markdown(
-                    f"<div class='el-garamond' style='margin-top:0.8em; font-size:1.19em;'><b>Final Verdict: "
+                    f"<div style='margin-top:0.8em; font-size:1.19em;'><b>Final Verdict: "
                     f"<span style='color:{verdict_color[verdict]}'>{verdict}</span></b></div>",
                     unsafe_allow_html=True
                 )
@@ -454,7 +438,7 @@ if st.session_state["data_loaded"]:
                 allocation_block = ""
                 if verdict == "BUY":
                     st.markdown(
-                        f"<span class='el-garamond' style='font-size:1.02em; margin-bottom:0.1em; display:block; color:#fff;'>{capital_help}</span>",
+                        f"<span style='font-size:1.02em; margin-bottom:0.1em; display:block; color:#fff;'>{capital_help}</span>",
                         unsafe_allow_html=True
                     )
                     if capital >= latest_close * 2:
@@ -468,7 +452,7 @@ if st.session_state["data_loaded"]:
                         allocation_block = f"Enter at least ${min_capital:.2f} capital to see recommended shares to buy."
                 elif verdict == "SELL":
                     st.markdown(
-                        f"<span class='el-garamond' style='font-size:1.02em; margin-bottom:0.1em; display:block; color:#fff;'>{shares_help}</span>",
+                        f"<span style='font-size:1.02em; margin-bottom:0.1em; display:block; color:#fff;'>{shares_help}</span>",
                         unsafe_allow_html=True
                     )
                     if shares_owned >= 2:
@@ -482,7 +466,7 @@ if st.session_state["data_loaded"]:
                         allocation_block = f"Enter at least 2 shares owned to see recommended shares to sell."
                 else:
                     st.markdown(
-                        f"<span class='el-garamond' style='font-size:1.02em; margin-bottom:0.1em; display:block; color:#fff;'>{shares_help}</span>",
+                        f"<span style='font-size:1.02em; margin-bottom:0.1em; display:block; color:#fff;'>{shares_help}</span>",
                         unsafe_allow_html=True
                     )
                     if shares_owned >= 2:
@@ -496,17 +480,17 @@ if st.session_state["data_loaded"]:
                         allocation_block = f"Enter at least 2 shares owned to see recommended shares to hold."
 
                 st.markdown(
-                    f"<div class='el-garamond' style='font-size:1.09em; margin-top:0.23em; color:#fff;'>{allocation_block}</div>",
+                    f"<div style='font-size:1.09em; margin-top:0.23em; color:#fff;'>{allocation_block}</div>",
                     unsafe_allow_html=True
                 )
                 st.markdown(
-                    "<div class='el-garamond' style='margin-top:0.7em; color:#fff;'>" + "<br>".join(ai_text) + "</div>",
+                    "<div style='margin-top:0.7em; color:#fff;'>" + "<br>".join(ai_text) + "</div>",
                     unsafe_allow_html=True
                 )
 
                 if simulate:
                     st.markdown(
-                        "<div class='el-garamond project-text' style='font-size:1.07em; margin-top:0.8em;'><b>Investment Projection:</b></div>",
+                        "<div class='project-text' style='font-size:1.07em; margin-top:0.8em;'><b>Investment Projection:</b></div>",
                         unsafe_allow_html=True
                     )
                     n = years
@@ -515,22 +499,22 @@ if st.session_state["data_loaded"]:
                     cagr = (last_price / first_price) ** (1 / max(n,1)) - 1
                     projected = capital * ((1 + cagr) ** n)
                     st.markdown(
-                        f"<div class='el-garamond project-text' style='font-size:1.15em; color:#fff;'>"
+                        f"<div class='project-text' style='font-size:1.15em; color:#fff;'>"
                         f"If you'd invested ${capital:,.2f} for <b>{n} years</b>: <span style='color:#00c805; font-size:1.25em;'>${projected:,.2f}</span></div>"
-                        f"<div class='el-garamond project-text' style='font-size:0.97em; color:#bbb;'>"
+                        f"<div class='project-text' style='font-size:0.97em; color:#bbb;'>"
                         f"Projection uses CAGR from historical price. Past performance ≠ future results."
                         f"</div>",
                         unsafe_allow_html=True
                     )
 
                 st.markdown(
-                    "<div class='el-garamond' style='font-size:1.02em; color:#ffd700;'>(These suggestions are rule-based and for educational purposes. Always research thoroughly before investing!)</div>",
+                    "<div style='font-size:1.02em; color:#ffd700;'>(These suggestions are rule-based and for educational purposes. Always research thoroughly before investing!)</div>",
                     unsafe_allow_html=True
                 )
 
 with st.expander("About QuantPilot"):
     st.markdown("""
-    <div class='el-garamond' style='font-size:1.17em;color:#fff;'>
+    <div style='font-size:1.17em;color:#fff;'>
     QuantPilot empowers investors with:
     <ul style="margin-top:0.3em; margin-bottom:0.8em; font-size:1.09em;">
         <li>Beautiful, interactive candlestick charts</li>
@@ -546,6 +530,6 @@ with st.expander("About QuantPilot"):
     </div>
     """, unsafe_allow_html=True)
 
-st.markdown("""<div class="copyright-text el-garamond">
+st.markdown("""<div class="copyright-text">
 &copy; 2025 QuantPilot. All rights reserved.
 </div>""", unsafe_allow_html=True)
