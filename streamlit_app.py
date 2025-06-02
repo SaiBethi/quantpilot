@@ -374,10 +374,10 @@ if st.session_state["data_loaded"]:
             df['Drawdown'] = drawdown(df[close_col])
 
             # --- MAIN CHART + Volatility + MA Table (top layout) ---
-            top_col1, top_col2, top_col3 = st.columns([1.5, 4, 2.2])
+            top_col1, top_col2, top_col3 = st.columns([1.7, 4, 2.6])
             with top_col1:
                 st.markdown("<div class='stat-card'><div class='stat-label'>Volatility (20d)</div>", unsafe_allow_html=True)
-                st.line_chart(df['Volatility (20d)'], use_container_width=True)
+                st.line_chart(df['Volatility (20d)'], use_container_width=True, height=450)
             with top_col2:
                 # Candlestick chart
                 main_candle = go.Figure()
@@ -403,9 +403,13 @@ if st.session_state["data_loaded"]:
                 st.plotly_chart(main_candle, use_container_width=True)
             with top_col3:
                 st.markdown("<div class='stat-card'><div class='stat-label'>Moving Avg. Table</div>", unsafe_allow_html=True)
-                st.dataframe(df[[close_col, 'MA20','MA50','MA100','MA200','EMA20','EMA50','EMA100','EMA200']].tail(15), use_container_width=True, height=300)
+                st.dataframe(
+                    df[[close_col, 'MA20','MA50','MA100','MA200','EMA20','EMA50','EMA100','EMA200']].tail(35),
+                    use_container_width=True,
+                    height=540
+                )
 
-            # --- VOLUME ---
+            # --- VOLUME (bigger) ---
             st.markdown("<div style='margin-top:-1em'/>", unsafe_allow_html=True)
             vol_fig = go.Figure()
             vol_fig.add_trace(go.Bar(
@@ -414,33 +418,37 @@ if st.session_state["data_loaded"]:
             vol_fig.update_layout(
                 margin=dict(l=10, r=10, t=8, b=10),
                 template="plotly_dark",
-                height=160,  # Bigger volume chart
+                height=220,  # Bigger volume chart
                 showlegend=False,
                 xaxis=dict(visible=False),
                 yaxis=dict(title="Volume", tickfont=dict(size=12, family="EB Garamond, serif"))
             )
             st.plotly_chart(vol_fig, use_container_width=True)
 
-            # --- BOTTOM: Drawdown, RSI, Daily % Change, MACD, OBV ---
-            bot_col1, bot_col2, bot_col3 = st.columns([1.5, 1.5, 2.2])
-            with bot_col1:
+            # --- BOTTOM: Drawdown, RSI, OBV (top row), MACD + Daily % Change (bottom row, expanded) ---
+            bot_row1 = st.columns([1.5, 1.5, 2.2])
+            with bot_row1[0]:
                 st.markdown("<div class='stat-card'><div class='stat-label'>Drawdown</div>", unsafe_allow_html=True)
-                st.line_chart(df['Drawdown'], use_container_width=True)
-            with bot_col2:
+                st.line_chart(df['Drawdown'], use_container_width=True, height=160)
+            with bot_row1[1]:
                 st.markdown("<div class='stat-card'><div class='stat-label'>RSI (14d)</div>", unsafe_allow_html=True)
-                st.line_chart(df['RSI'], use_container_width=True)
-                st.markdown("<div class='stat-card'><div class='stat-label'>Daily % Change</div>", unsafe_allow_html=True)
-                st.line_chart(df['Daily % Change'], use_container_width=True)
-            with bot_col3:
+                st.line_chart(df['RSI'], use_container_width=True, height=160)
+            with bot_row1[2]:
+                st.markdown("<div class='stat-card'><div class='stat-label'>OBV (On-Balance Volume)</div>", unsafe_allow_html=True)
+                st.line_chart(df['OBV'], use_container_width=True, height=160)
+
+            bot_row2 = st.columns([2, 2])
+            with bot_row2[0]:
                 st.markdown("<div class='stat-card'><div class='stat-label'>MACD</div>", unsafe_allow_html=True)
                 mfig = go.Figure()
                 mfig.add_trace(go.Scatter(x=df.index, y=df['MACD'], name="MACD", line=dict(color="#00c805")))
                 mfig.add_trace(go.Scatter(x=df.index, y=df['MACD_Signal'], name="Signal", line=dict(color="#e0e0e0")))
                 mfig.add_trace(go.Bar(x=df.index, y=df['MACD_Hist'], name="Histogram", marker_color="#aaf"))
-                mfig.update_layout(template="plotly_dark",margin=dict(l=0,r=0,t=8,b=8),height=130,showlegend=False)
+                mfig.update_layout(template="plotly_dark",margin=dict(l=0,r=0,t=8,b=8),height=180,showlegend=False)
                 st.plotly_chart(mfig, use_container_width=True)
-                st.markdown("<div class='stat-card'><div class='stat-label'>OBV (On-Balance Volume)</div>", unsafe_allow_html=True)
-                st.line_chart(df['OBV'], use_container_width=True)
+            with bot_row2[1]:
+                st.markdown("<div class='stat-card'><div class='stat-label'>Daily % Change</div>", unsafe_allow_html=True)
+                st.line_chart(df['Daily % Change'], use_container_width=True, height=180)
 
             # --- Rest of the UI (unchanged) ---
             left, right = st.columns(2)
