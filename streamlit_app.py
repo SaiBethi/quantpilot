@@ -31,6 +31,20 @@ st.markdown("""
         color: #fff !important;
         letter-spacing: 0.01em;
     }
+    /* Make text in input boxes black, but labels white */
+    .stTextInput > div > input,
+    .stNumberInput > div > input,
+    .stDateInput > div > input,
+    .stSelectbox div[data-baseweb="select"] input {
+        color: #111 !important;
+        background: #fff !important;
+        font-family: 'EB Garamond', serif !important;
+        font-size: 1.09em !important;
+    }
+    .stTextInput > div > input::placeholder {
+        color: #333 !important;
+        opacity: 1 !important;
+    }
     .stButton>button, .stDownloadButton>button {
         font-weight: 600;
         font-size: 1.09em !important;
@@ -60,6 +74,13 @@ st.markdown("""
         letter-spacing: 0.01em;
         font-weight: 800;
         font-family: 'EB Garamond', serif !important;
+    }
+    .rh-legend-header .legend-green {
+        color: #00c805 !important;
+        font-size: 0.85em;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        margin-left: 0.3em;
     }
     .rh-quick-legend {
         font-size: 1.11em;
@@ -152,8 +173,8 @@ st.markdown("""
 # --- Legend Header ---
 st.markdown("""
 <div class="rh-legend-header">
-    <b>QuantPilot</b>
-    <span style="color:#fff;font-size:0.85em;font-weight:700;"> LEGEND</span>
+    <b style="color:#00c805">QuantPilot</b>
+    <span class="legend-green">LEGEND</span>
 </div>
 """, unsafe_allow_html=True)
 
