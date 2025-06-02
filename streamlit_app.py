@@ -382,7 +382,7 @@ if st.session_state["data_loaded"]:
                 st.line_chart(df['Volatility (20d)'], use_container_width=True, height=480)
             with top_col2:
                 # Spacer to pull price chart down a little
-                st.markdown("<div style='height:60px'/></div>", unsafe_allow_html=True)
+                st.markdown("<div style='height:70px'/></div>", unsafe_allow_html=True)
                 main_candle = go.Figure()
                 main_candle.add_trace(go.Candlestick(
                     x=df.index, open=df[open_col], high=df[high_col],
