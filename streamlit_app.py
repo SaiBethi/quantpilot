@@ -303,7 +303,7 @@ if st.session_state["data_loaded"]:
                     x=df.index, open=df[open_col], high=df[high_col], low=df[low_col], close=df[close_col],
                     name='Candlestick'
                 ))
-                for m,col in [("MA20",'cyan'),("MA50','#00c805'),("MA100",'#aaa'),("MA200",'#fff')]:
+                for m, col in [("MA20", "cyan"), ("MA50", "#00c805"), ("MA100", "#aaa"), ("MA200", "#fff")]:
                     fig.add_trace(go.Scatter(x=df.index, y=df[m], name=m, line=dict(color=col, width=1, dash="dot")))
                 fig.update_layout(margin=dict(l=0,r=0,t=10,b=10),height=190,template="plotly_dark",showlegend=False)
                 st.plotly_chart(fig, use_container_width=True)
