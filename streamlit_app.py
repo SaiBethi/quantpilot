@@ -276,7 +276,6 @@ with colc1:
     if simulate:
         years = st.slider("Years to Simulate", 1, 100, 5, 1)
 with colc2:
-    # --- The note for full screen chart feature ---
     st.markdown(
         "<div class='price-note'>TIP: Click the expand arrows in the corner of the price chart to fullscreen and view all data.</div>",
         unsafe_allow_html=True
@@ -396,7 +395,6 @@ if st.session_state["data_loaded"]:
                 st.markdown("<div class='stat-card'><div class='stat-label'>Volatility (20d)</div>", unsafe_allow_html=True)
                 st.line_chart(df['Volatility (20d)'], use_container_width=True, height=480)
             with top_col2:
-                # Spacer to pull price chart down a little, but keep label in the same row as others
                 st.markdown(
                     "<div class='stat-card' style='padding-bottom:0.2em;'>"
                     "<div class='stat-label'>Price Chart</div>"
@@ -556,6 +554,7 @@ if st.session_state["data_loaded"]:
                 )
 
                 min_capital = max(100, latest_close) * 2
+                # FIXED: Capital/shares help is now always on one line and never doubled
                 capital_help = f"(Recommended: Enter at least ${min_capital:.2f}. Each share ≈ ${latest_close:.2f})"
                 shares_help = f"(Recommended: Enter at least 2 shares. Each share ≈ ${latest_close:.2f})"
 
