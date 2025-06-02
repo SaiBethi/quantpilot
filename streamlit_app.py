@@ -6,7 +6,7 @@ import numpy as np
 
 st.set_page_config(page_title="QuantPilot: Robinhood LEGEND", layout="wide")
 
-# --- Enhanced Robinhood/Legend/EB Garamond CSS for white text, soft shadow, modern look, centered, responsive ---
+# --- Enhanced Robinhood/Legend/EB Garamond CSS for white text, soft shadow, modern look, centered, responsive, black input fields ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
@@ -31,27 +31,37 @@ st.markdown("""
         color: #fff !important;
         letter-spacing: 0.01em;
     }
-    /* Input field text is white on black, labels are white */
-    /* Force all input fields to have black background and white text */
-.stTextInput input,
-.stNumberInput input,
-.stDateInput input,
-.stSelectbox div[data-baseweb="select"] input {
-    background: #111 !important;
-    color: #fff !important;
-    border-radius: 0.6em !important;
-    border: 1.7px solid #333 !important;
-    font-family: 'EB Garamond', serif !important;
-    font-size: 1.09em !important;
-    box-shadow: 0 2px 8px #0006 !important;
-}
-.stTextInput input::placeholder,
-.stNumberInput input::placeholder,
-.stDateInput input::placeholder,
-.stSelectbox div[data-baseweb="select"] input::placeholder {
-    color: #aaa !important;
-    opacity: 1 !important;
-}
+    /* Input fields: black background, white text, keep Streamlit stepper (+/-) buttons */
+    .stTextInput input,
+    .stNumberInput input,
+    .stDateInput input,
+    .stSelectbox div[data-baseweb="select"] input {
+        background: #111 !important;
+        color: #fff !important;
+        font-family: 'EB Garamond', serif !important;
+        font-size: 1.09em !important;
+        border-radius: 0.6em !important;
+        border: 1.7px solid #333 !important;
+        box-shadow: 0 2px 8px #0006 !important;
+        padding-left: 8px !important;
+    }
+    .stNumberInput button {
+        color: #fff !important;
+        background: #18191d !important;
+        border-radius: 0.5em !important;
+        border: 1.2px solid #333 !important;
+        font-size: 1.1em !important;
+    }
+    .stNumberInput button:hover {
+        background: #00c805 !important;
+        color: #111 !important;
+    }
+    .stTextInput input::placeholder,
+    .stNumberInput input::placeholder,
+    .stDateInput input::placeholder,
+    .stSelectbox div[data-baseweb="select"] input::placeholder {
+        color: #aaa !important;
+        opacity: 1 !important;
     }
     .stButton>button, .stDownloadButton>button {
         font-weight: 600;
@@ -181,7 +191,7 @@ st.markdown("""
 # --- Legend Header ---
 st.markdown("""
 <div class="rh-legend-header">
-    <b style="color:#00c805">QuantPilot</b>
+    <b style="color:#00c805;">QuantPilot</b>
     <span class="legend-green">LEGEND</span>
 </div>
 """, unsafe_allow_html=True)
