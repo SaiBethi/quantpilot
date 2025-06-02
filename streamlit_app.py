@@ -32,21 +32,26 @@ st.markdown("""
         letter-spacing: 0.01em;
     }
     /* Input field text is white on black, labels are white */
-    .stTextInput > div > input,
-    .stNumberInput > div > input,
-    .stDateInput > div > input,
-    .stSelectbox div[data-baseweb="select"] input {
-        color: #fff !important;
-        background: #111 !important;
-        font-family: 'EB Garamond', serif !important;
-        font-size: 1.09em !important;
-        border-radius: 0.6em !important;
-        border: 1.7px solid #333 !important;
-        box-shadow: 0 2px 8px #0006 !important;
-    }
-    .stTextInput > div > input::placeholder {
-        color: #aaa !important;
-        opacity: 1 !important;
+    /* Force all input fields to have black background and white text */
+.stTextInput input,
+.stNumberInput input,
+.stDateInput input,
+.stSelectbox div[data-baseweb="select"] input {
+    background: #111 !important;
+    color: #fff !important;
+    border-radius: 0.6em !important;
+    border: 1.7px solid #333 !important;
+    font-family: 'EB Garamond', serif !important;
+    font-size: 1.09em !important;
+    box-shadow: 0 2px 8px #0006 !important;
+}
+.stTextInput input::placeholder,
+.stNumberInput input::placeholder,
+.stDateInput input::placeholder,
+.stSelectbox div[data-baseweb="select"] input::placeholder {
+    color: #aaa !important;
+    opacity: 1 !important;
+}
     }
     .stButton>button, .stDownloadButton>button {
         font-weight: 600;
