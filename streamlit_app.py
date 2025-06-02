@@ -268,22 +268,6 @@ with st.expander("① Start Here: Select Tickers and Date Range", expanded=True)
             help="Select the data interval: 1 day, 1 week, 1 month"
         )
 
-if st.button("Get Data & Analyze", key="getdata"):
-    try:
-        start = pd.to_datetime(start_str).strftime("%Y-%m-%d")
-        end = pd.to_datetime(end_str).strftime("%Y-%m-%d")
-    except Exception:
-        st.error("Please enter valid dates in YYYY-MM-DD format.")
-        st.stop()
-    st.session_state["data_loaded"] = True
-    st.session_state["stock_data"] = yf.download(
-        tickers, start=start, end=end, interval=interval, group_by='ticker', auto_adjust=True
-    )
-    st.session_state["tickers"] = tickers
-    st.session_state["start"] = start
-    st.session_state["end"] = end
-    st.session_state["interval"] = interval
-
 st.markdown("<span class='section-header'>② Options</span>", unsafe_allow_html=True)
 colc1, colc2 = st.columns(2)
 with colc1:
@@ -292,6 +276,11 @@ with colc1:
     if simulate:
         years = st.slider("Years to Simulate", 1, 100, 5, 1)
 with colc2:
+    # --- The note for full screen chart feature ---
+    st.markdown(
+        "<div class='price-note'>TIP: Click the expand arrows in the corner of the price chart to fullscreen and view all data.</div>",
+        unsafe_allow_html=True
+    )
     capital = st.number_input("Your available capital ($):", min_value=0.0, step=100.0, value=1000.0)
     shares_owned = st.number_input("Your number of shares owned:", min_value=0, step=1, value=0)
 
@@ -336,6 +325,22 @@ def drawdown(close):
     roll_max = close.cummax()
     dd = (close - roll_max)/roll_max
     return dd
+
+if st.button("Get Data & Analyze", key="getdata"):
+    try:
+        start = pd.to_datetime(start_str).strftime("%Y-%m-%d")
+        end = pd.to_datetime(end_str).strftime("%Y-%m-%d")
+    except Exception:
+        st.error("Please enter valid dates in YYYY-MM-DD format.")
+        st.stop()
+    st.session_state["data_loaded"] = True
+    st.session_state["stock_data"] = yf.download(
+        tickers, start=start, end=end, interval=interval, group_by='ticker', auto_adjust=True
+    )
+    st.session_state["tickers"] = tickers
+    st.session_state["start"] = start
+    st.session_state["end"] = end
+    st.session_state["interval"] = interval
 
 st.markdown("<span class='section-header'>③ Stock Data & Analysis</span>", unsafe_allow_html=True)
 if st.session_state["data_loaded"]:
@@ -394,11 +399,6 @@ if st.session_state["data_loaded"]:
                 # Spacer to pull price chart down a little
                 st.markdown("<div style='height:74px'/></div>", unsafe_allow_html=True)
                 st.markdown("<div class='stat-card'><div class='stat-label'>Price Chart</div></div>", unsafe_allow_html=True)
-                # Note for fullscreen
-                st.markdown(
-                    "<div class='price-note'>TIP: Click the expand arrows in the corner of the chart to fullscreen and view all data.</div>",
-                    unsafe_allow_html=True
-                )
                 main_candle = go.Figure()
                 main_candle.add_trace(go.Candlestick(
                     x=df.index, open=df[open_col], high=df[high_col],
