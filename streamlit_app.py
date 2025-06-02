@@ -6,7 +6,7 @@ import numpy as np
 
 st.set_page_config(page_title="QuantPilot: Robinhood LEGEND", layout="wide")
 
-# --- Enhanced CSS: white text everywhere, black input fields with white text, modern cards, green legend, and robust selectbox styling ---
+# --- Enhanced CSS: all dropdowns, popovers, and calendar are black, text is white, modern cards, green legend, (+/-) steppers preserved ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap');
@@ -31,7 +31,6 @@ st.markdown("""
         color: #fff !important;
         letter-spacing: 0.01em;
     }
-    /* Input fields: black background, white text, keep Streamlit stepper (+/-) buttons */
     .stTextInput input,
     .stNumberInput input,
     .stDateInput input {
@@ -55,7 +54,14 @@ st.markdown("""
         background: #00c805 !important;
         color: #111 !important;
     }
-    /* Selectbox (Interval) styling */
+    .stTextInput input::placeholder,
+    .stNumberInput input::placeholder,
+    .stDateInput input::placeholder,
+    .stSelectbox div[data-baseweb="select"] input::placeholder {
+        color: #aaa !important;
+        opacity: 1 !important;
+    }
+    /* ---- SELECTBOX, DROPDOWNS, POPOVERS, and CALENDAR FULL BLACK ---- */
     .stSelectbox [data-baseweb="select"] {
         background: #111 !important;
         color: #fff !important;
@@ -70,24 +76,56 @@ st.markdown("""
         background: #111 !important;
         font-family: 'EB Garamond', serif !important;
     }
-    .stSelectbox [data-baseweb="popover"] {
+    /* The popover menu and options */
+    [role="listbox"], [data-baseweb="menu"], [data-baseweb="popover"] {
         background: #111 !important;
         color: #fff !important;
+        border-radius: 0.6em !important;
+        border: 1.5px solid #333 !important;
+        font-family: 'EB Garamond', serif !important;
     }
-    .stSelectbox [data-baseweb="option"] {
+    [role="option"], [data-baseweb="option"] {
         background: #111 !important;
         color: #fff !important;
+        font-family: 'EB Garamond', serif !important;
+        font-size: 1.09em !important;
     }
+    [role="option"]:hover, [data-baseweb="option"]:hover,
+    [role="option"][aria-selected="true"], [data-baseweb="option"][aria-selected="true"] {
+        background: #00c805 !important;
+        color: #111 !important;
+    }
+    /* Selectbox chevron icon */
     .stSelectbox [data-baseweb="select"] svg {
         color: #fff !important;
     }
-    .stTextInput input::placeholder,
-    .stNumberInput input::placeholder,
-    .stDateInput input::placeholder,
-    .stSelectbox div[data-baseweb="select"] input::placeholder {
-        color: #aaa !important;
-        opacity: 1 !important;
+    /* Date picker calendar popover */
+    .stDateInput [data-baseweb="popover"], .stDateInput [data-baseweb="calendar"] {
+        background: #111 !important;
+        color: #fff !important;
+        border-radius: 0.6em !important;
+        border: 1.5px solid #333 !important;
     }
+    .stDateInput [data-baseweb="calendar-header"] {
+        background: #111 !important;
+        color: #fff !important;
+    }
+    .stDateInput [data-baseweb="calendar"] * {
+        color: #fff !important;
+        background: #111 !important;
+        font-family: 'EB Garamond', serif !important;
+    }
+    .stDateInput [data-baseweb="calendar-day"]:not([aria-disabled="true"]) {
+        background: #222 !important;
+        color: #fff !important;
+        border-radius: 0.5em !important;
+    }
+    .stDateInput [data-baseweb="calendar-day"]:hover,
+    .stDateInput [data-baseweb="calendar-day"][aria-selected="true"] {
+        background: #00c805 !important;
+        color: #111 !important;
+    }
+    /* --- Button and card styles remain --- */
     .stButton>button, .stDownloadButton>button {
         font-weight: 600;
         font-size: 1.09em !important;
